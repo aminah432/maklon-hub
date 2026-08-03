@@ -90,7 +90,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="lg:pl-[264px]">
-        <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur print:hidden">
+        <header className="sticky top-0 z-20 border-b border-border/70 bg-background print:hidden">
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
@@ -157,7 +157,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border/70 bg-background/95 backdrop-blur lg:hidden print:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border/70 bg-background lg:hidden print:hidden"
         aria-label="Navigasi cepat"
       >
         {MOBILE_NAV.map((item) => (
