@@ -175,18 +175,31 @@ function AuthPage() {
               <Label htmlFor="password" className="text-neutral-700">
                 Kata sandi
               </Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                autoComplete={mode === "masuk" ? "current-password" : "new-password"}
-                placeholder="Minimal 6 karakter"
-                className="h-11 rounded-xl border-neutral-200 bg-white text-neutral-900"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={6}
+                  autoComplete={mode === "masuk" ? "current-password" : "new-password"}
+                  placeholder="Minimal 6 karakter"
+                  className="h-11 rounded-xl border-neutral-200 bg-white pr-11 text-neutral-900"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                  className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-xl text-neutral-400 transition-colors hover:text-neutral-700"
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4" aria-hidden />
+                  ) : (
+                    <Eye className="size-4" aria-hidden />
+                  )}
+                </button>
+              </div>
             <Button type="submit" className="h-11 w-full rounded-xl" disabled={loading}>
               {loading ? "Memproses…" : mode === "masuk" ? "Masuk" : "Daftar"}
             </Button>
