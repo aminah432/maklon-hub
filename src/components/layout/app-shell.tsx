@@ -134,7 +134,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild className="gap-2 rounded-xl">
-                    <Link to="/app/settings">
+                    <Link to={SETTINGS_PATH}>
                       <User2 className="size-4" aria-hidden /> Pengaturan
                     </Link>
                   </DropdownMenuItem>
