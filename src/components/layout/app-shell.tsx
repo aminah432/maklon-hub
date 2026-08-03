@@ -150,7 +150,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1400px] px-4 pb-28 pt-6 sm:px-6 lg:pb-12">
+        <main className="mesh-bg mx-auto w-full max-w-[1400px] px-4 pb-28 pt-6 sm:px-6 lg:pb-12">
+          <div aria-hidden className="mesh-layer" />
           {children}
         </main>
       </div>
