@@ -17,6 +17,8 @@ import {
 import { CompanySwitcher } from "@/components/layout/company-switcher";
 import { useCompany } from "@/lib/company-context";
 import { logoPerusahaan, skalaLogo } from "@/lib/company-logo";
+import { MascotLogo } from "@/components/common/mascot";
+
 
 import { NAV_ITEMS, MOBILE_NAV } from "@/lib/constants";
 import { inisial, sapaan } from "@/lib/format";
