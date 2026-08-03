@@ -35,6 +35,7 @@ function AuthPage() {
   const [mode, setMode] = useState<"masuk" | "daftar">("masuk");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
