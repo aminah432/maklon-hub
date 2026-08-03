@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { BarChart3, Boxes, Factory, ShieldCheck } from "lucide-react";
+import { BarChart3, Boxes, Eye, EyeOff, Factory, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,7 @@ function AuthPage() {
   const [mode, setMode] = useState<"masuk" | "daftar">("masuk");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -74,16 +75,18 @@ function AuthPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
       <section className="relative hidden overflow-hidden bg-primary-deep p-10 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
+        <div aria-hidden className="mesh-layer-light" />
         <div
           aria-hidden
-          className="pointer-events-none absolute -left-24 -top-24 size-[26rem] rounded-full bg-primary/50 blur-3xl"
+          className="animate-soft-float pointer-events-none absolute -left-24 -top-24 size-[26rem] rounded-full bg-primary/50 blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-32 -right-16 size-[30rem] rounded-full bg-primary/35 blur-3xl"
+          className="animate-soft-float pointer-events-none absolute -bottom-32 -right-16 size-[30rem] rounded-full bg-primary/35 blur-3xl"
+          style={{ animationDelay: "-7s", animationDuration: "18s" }}
         />
 
-        <div className="relative flex items-center gap-3">
+        <div className="animate-rise-in relative flex items-center gap-3">
           <span className="grid size-11 place-items-center rounded-2xl bg-primary-foreground/15 text-lg font-black backdrop-blur">
             M
           </span>
@@ -94,19 +97,26 @@ function AuthPage() {
         </div>
 
         <div className="relative max-w-lg">
-          <h2 className="text-4xl font-black leading-[1.1] tracking-tight">
+          <h2
+            className="animate-rise-in text-4xl leading-[1.1] tracking-tight"
+            style={{ animationDelay: "0.1s" }}
+          >
             Kendalikan seluruh alur maklon dari satu dasbor.
           </h2>
-          <p className="mt-4 text-sm leading-relaxed opacity-80">
+          <p
+            className="animate-rise-in mt-4 text-sm leading-relaxed opacity-80"
+            style={{ animationDelay: "0.2s" }}
+          >
             Dari kalkulasi HPP, penawaran, pesanan, produksi, hingga penagihan — semua rapi,
             terukur, dan terpisah per perusahaan.
           </p>
 
           <ul className="mt-8 space-y-3">
-            {SOROTAN.map((s) => (
+            {SOROTAN.map((s, i) => (
               <li
                 key={s.title}
-                className="flex items-start gap-3 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 p-4 backdrop-blur"
+                className="animate-rise-in flex items-start gap-3 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 p-4 backdrop-blur transition-transform duration-500 hover:translate-x-1"
+                style={{ animationDelay: `${0.3 + i * 0.12}s` }}
               >
                 <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary-foreground/15">
                   <s.icon className="size-4" aria-hidden />
@@ -120,7 +130,10 @@ function AuthPage() {
           </ul>
         </div>
 
-        <p className="relative flex items-center gap-2 text-xs opacity-70">
+        <p
+          className="animate-rise-in relative flex items-center gap-2 text-xs opacity-70"
+          style={{ animationDelay: "0.7s" }}
+        >
           <ShieldCheck className="size-4" aria-hidden />
           Data terisolasi per perusahaan dengan kontrol akses berlapis.
         </p>
@@ -163,17 +176,31 @@ function AuthPage() {
               <Label htmlFor="password" className="text-neutral-700">
                 Kata sandi
               </Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                autoComplete={mode === "masuk" ? "current-password" : "new-password"}
-                placeholder="Minimal 6 karakter"
-                className="h-11 rounded-xl border-neutral-200 bg-white text-neutral-900"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={6}
+                  autoComplete={mode === "masuk" ? "current-password" : "new-password"}
+                  placeholder="Minimal 6 karakter"
+                  className="h-11 rounded-xl border-neutral-200 bg-white pr-11 text-neutral-900"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                  className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-xl text-neutral-400 transition-colors hover:text-neutral-700"
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4" aria-hidden />
+                  ) : (
+                    <Eye className="size-4" aria-hidden />
+                  )}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="h-11 w-full rounded-xl" disabled={loading}>
               {loading ? "Memproses…" : mode === "masuk" ? "Masuk" : "Daftar"}
