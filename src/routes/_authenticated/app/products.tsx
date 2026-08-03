@@ -319,6 +319,14 @@ function ProductsPage() {
                       </dd>
                     </div>
                     <div>
+                      <dt className="text-xs text-muted-foreground">Klien</dt>
+                      <dd className="truncate">{namaKlien(p.client_id)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Brand</dt>
+                      <dd className="truncate">{namaBrand(p.brand_id)}</dd>
+                    </div>
+                    <div>
                       <dt className="text-xs text-muted-foreground">Kategori</dt>
                       <dd>{namaKategori(p.category_id)}</dd>
                     </div>
