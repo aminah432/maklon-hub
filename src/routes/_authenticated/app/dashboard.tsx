@@ -9,12 +9,24 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertTriangle, ArrowUpRight, Factory, TrendingUp, Wallet } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  Boxes,
+  Factory,
+  Handshake,
+  Package,
+  TrendingUp,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { FloatingCard } from "@/components/common/floating-card";
 import { StatusBadge } from "@/components/common/status-badge";
