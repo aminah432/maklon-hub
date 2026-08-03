@@ -18,6 +18,7 @@ import { Route as AuthenticatedAppBrokersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppClientsRouteImport } from './routes/_authenticated/app/clients'
 import { Route as AuthenticatedAppCostingsRouteImport } from './routes/_authenticated/app/costings'
 import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/app/dashboard'
+import { Route as AuthenticatedAppDocumentsRouteImport } from './routes/_authenticated/app/documents'
 import { Route as AuthenticatedAppOrdersRouteImport } from './routes/_authenticated/app/orders'
 import { Route as AuthenticatedAppProductionRouteImport } from './routes/_authenticated/app/production'
 import { Route as AuthenticatedAppProductsRouteImport } from './routes/_authenticated/app/products'
@@ -72,6 +73,12 @@ const AuthenticatedAppDashboardRoute =
     path: '/dashboard',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppDocumentsRoute =
+  AuthenticatedAppDocumentsRouteImport.update({
+    id: '/documents',
+    path: '/documents',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppOrdersRoute = AuthenticatedAppOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/app/clients': typeof AuthenticatedAppClientsRoute
   '/app/costings': typeof AuthenticatedAppCostingsRoute
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/app/documents': typeof AuthenticatedAppDocumentsRoute
   '/app/orders': typeof AuthenticatedAppOrdersRoute
   '/app/production': typeof AuthenticatedAppProductionRoute
   '/app/products': typeof AuthenticatedAppProductsRoute
@@ -140,6 +148,7 @@ export interface FileRoutesByTo {
   '/app/clients': typeof AuthenticatedAppClientsRoute
   '/app/costings': typeof AuthenticatedAppCostingsRoute
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/app/documents': typeof AuthenticatedAppDocumentsRoute
   '/app/orders': typeof AuthenticatedAppOrdersRoute
   '/app/production': typeof AuthenticatedAppProductionRoute
   '/app/products': typeof AuthenticatedAppProductsRoute
@@ -159,6 +168,7 @@ export interface FileRoutesById {
   '/_authenticated/app/clients': typeof AuthenticatedAppClientsRoute
   '/_authenticated/app/costings': typeof AuthenticatedAppCostingsRoute
   '/_authenticated/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/_authenticated/app/documents': typeof AuthenticatedAppDocumentsRoute
   '/_authenticated/app/orders': typeof AuthenticatedAppOrdersRoute
   '/_authenticated/app/production': typeof AuthenticatedAppProductionRoute
   '/_authenticated/app/products': typeof AuthenticatedAppProductsRoute
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/app/clients'
     | '/app/costings'
     | '/app/dashboard'
+    | '/app/documents'
     | '/app/orders'
     | '/app/production'
     | '/app/products'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/app/clients'
     | '/app/costings'
     | '/app/dashboard'
+    | '/app/documents'
     | '/app/orders'
     | '/app/production'
     | '/app/products'
@@ -213,6 +225,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/clients'
     | '/_authenticated/app/costings'
     | '/_authenticated/app/dashboard'
+    | '/_authenticated/app/documents'
     | '/_authenticated/app/orders'
     | '/_authenticated/app/production'
     | '/_authenticated/app/products'
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppDashboardRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/documents': {
+      id: '/_authenticated/app/documents'
+      path: '/documents'
+      fullPath: '/app/documents'
+      preLoaderRoute: typeof AuthenticatedAppDocumentsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/orders': {
       id: '/_authenticated/app/orders'
       path: '/orders'
@@ -351,6 +371,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppClientsRoute: typeof AuthenticatedAppClientsRoute
   AuthenticatedAppCostingsRoute: typeof AuthenticatedAppCostingsRoute
   AuthenticatedAppDashboardRoute: typeof AuthenticatedAppDashboardRoute
+  AuthenticatedAppDocumentsRoute: typeof AuthenticatedAppDocumentsRoute
   AuthenticatedAppOrdersRoute: typeof AuthenticatedAppOrdersRoute
   AuthenticatedAppProductionRoute: typeof AuthenticatedAppProductionRoute
   AuthenticatedAppProductsRoute: typeof AuthenticatedAppProductsRoute
@@ -366,6 +387,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppClientsRoute: AuthenticatedAppClientsRoute,
   AuthenticatedAppCostingsRoute: AuthenticatedAppCostingsRoute,
   AuthenticatedAppDashboardRoute: AuthenticatedAppDashboardRoute,
+  AuthenticatedAppDocumentsRoute: AuthenticatedAppDocumentsRoute,
   AuthenticatedAppOrdersRoute: AuthenticatedAppOrdersRoute,
   AuthenticatedAppProductionRoute: AuthenticatedAppProductionRoute,
   AuthenticatedAppProductsRoute: AuthenticatedAppProductsRoute,
