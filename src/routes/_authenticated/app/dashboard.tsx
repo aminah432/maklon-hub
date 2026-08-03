@@ -168,6 +168,100 @@ function DashboardPage() {
 
   const puncak = seri.reduce((m, r) => Math.max(m, r.omzet), 0);
 
+  /* ==== Data tambahan: klien, produk, brand, fee makelar ==== */
+  const ekstra = useMemo(() => {
+    const kl = clients.data ?? [];
+    const pr = products.data ?? [];
+    const br = brands.data ?? [];
+    const bf = brokerFees.data ?? [];
+    const klienAktif = kl.filter((c) => String(c["status"]) === "aktif").length;
+    const klienBaru = kl.filter((c) => dalam(c["created_at"] ?? c["joined_at"])).length;
+    const produkAktif = pr.filter((p) => String(p["status"]) === "aktif").length;
+    const feeTotal = bf.reduce((s, f) => s + Number(f["fee_amount"] ?? 0), 0);
+    const feeSisa = bf.reduce((s, f) => s + Number(f["remaining_amount"] ?? 0), 0);
+
+    const perKlien = new Map<string, number>();
+    for (const p of pr) perKlien.set(String(p["client_id"] ?? "-"), (perKlien.get(String(p["client_id"] ?? "-")) ?? 0) + 1);
+    const produkTeratas = [...perKlien.entries()]
+      .map(([id, jumlah]) => ({
+        nama: String(kl.find((c) => String(c["id"]) === id)?.["business_name"] ?? kl.find((c) => String(c["id"]) === id)?.["owner_name"] ?? "Tanpa klien"),
+        jumlah,
+      }))
+      .sort((a, b) => b.jumlah - a.jumlah)
+      .slice(0, 6);
+
+    const perMakelar = new Map<string, number>();
+    for (const f of bf) perMakelar.set(String(f["broker_id"] ?? "-"), (perMakelar.get(String(f["broker_id"] ?? "-")) ?? 0) + Number(f["fee_amount"] ?? 0));
+    const feeTeratas = [...perMakelar.entries()]
+      .map(([id, nilai]) => ({
+        nama: String((brokers.data ?? []).find((b) => String(b["id"]) === id)?.["name"] ?? "Lainnya"),
+        nilai,
+      }))
+      .filter((r) => r.nilai > 0)
+      .sort((a, b) => b.nilai - a.nilai)
+      .slice(0, 6);
+
+    const statusProduk = new Map<string, number>();
+    for (const p of pr) statusProduk.set(String(p["status"]), (statusProduk.get(String(p["status"])) ?? 0) + 1);
+    const komposisiProduk = [...statusProduk.entries()].map(([s, jumlah]) => ({
+      nama: labelStatus(s),
+      jumlah,
+    }));
+
+    return {
+      klienAktif,
+      klienBaru,
+      totalKlien: kl.length,
+      produkAktif,
+      totalProduk: pr.length,
+      totalBrand: br.length,
+      feeTotal,
+      feeSisa,
+      produkTeratas,
+      feeTeratas,
+      komposisiProduk,
+    };
+  }, [clients.data, products.data, brands.data, brokerFees.data, brokers.data, dari, sampai]);
+
+  const WARNA_PIE = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+
+  const kartuEkstra = [
+    {
+      label: "Klien aktif",
+      nilai: angka(ekstra.klienAktif),
+      sub: `${angka(ekstra.totalKlien)} total klien · ${angka(ekstra.klienBaru)} baru`,
+      to: "/app/clients",
+      icon: Users,
+      tone: "primary" as const,
+    },
+    {
+      label: "Produk aktif",
+      nilai: angka(ekstra.produkAktif),
+      sub: `${angka(ekstra.totalProduk)} produk terdaftar`,
+      to: "/app/products",
+      icon: Package,
+      tone: "info" as const,
+    },
+    {
+      label: "Brand dikelola",
+      nilai: angka(ekstra.totalBrand),
+      sub: "Merek milik klien maklon",
+      to: "/app/brands",
+      icon: Boxes,
+      tone: "success" as const,
+    },
+    {
+      label: "Fee makelar",
+      nilai: rupiah(ekstra.feeTotal),
+      sub: `Belum dibayar ${rupiah(ekstra.feeSisa)}`,
+      to: "/app/brokers",
+      icon: Handshake,
+      tone: "danger" as const,
+    },
+  ];
+
+
+
   const kartu = [
     {
       label: "Omzet",
