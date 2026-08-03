@@ -37,13 +37,23 @@ function AuthPage() {
         if (error) throw error;
         navigate({ to: "/app/dashboard", replace: true });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("Pendaftaran berhasil. Cek email untuk konfirmasi.");
+        toast.success("Pendaftaran berhasil.");
+        if (data.session) {
+          navigate({ to: "/app/dashboard", replace: true });
+        } else {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (signInError) throw signInError;
+          navigate({ to: "/app/dashboard", replace: true });
+        }
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Terjadi kesalahan");
