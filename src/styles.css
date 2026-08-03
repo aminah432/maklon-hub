@@ -402,10 +402,10 @@ html body h4 {
 
 @keyframes mesh-drift {
   from {
-    background-position: 0 0, 0 0;
+    transform: translate3d(0, 0, 0);
   }
   to {
-    background-position: 440px 220px, 440px 220px;
+    transform: translate3d(44px, 44px, 0);
   }
 }
 
