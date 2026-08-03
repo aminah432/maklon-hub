@@ -284,7 +284,6 @@
 /* Scroll halus & nyaman di seluruh halaman */
 @layer base {
   html {
-    scroll-behavior: smooth;
     scrollbar-gutter: stable;
   }
 
@@ -296,9 +295,9 @@
   main,
   [data-radix-scroll-area-viewport],
   .scroll-smooth-area {
-    scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
+
 
   * {
     scrollbar-width: thin;
