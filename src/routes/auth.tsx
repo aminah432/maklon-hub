@@ -133,6 +133,8 @@ function AuthPage() {
           </ul>
         </div>
 
+        <Mascot className="pointer-events-none absolute -bottom-6 right-2 hidden h-64 w-64 opacity-95 xl:block" />
+
         <p
           className="animate-rise-in relative flex items-center gap-2 text-xs opacity-70"
           style={{ animationDelay: "0.7s" }}
@@ -144,11 +146,11 @@ function AuthPage() {
 
       <section className="flex items-center justify-center bg-white px-5 py-12 sm:px-10">
         <div className="w-full max-w-sm">
-          <div className="mb-8 lg:hidden">
-            <span className="grid size-11 place-items-center rounded-2xl bg-primary text-lg font-black text-primary-foreground">
-              M
-            </span>
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <MascotLogo size={44} />
+            <span className="text-sm font-semibold text-neutral-700">Maklon Control Center</span>
           </div>
+
 
           <h1 className="text-2xl font-black tracking-tight text-neutral-900">
             {mode === "masuk" ? "Selamat datang kembali" : "Buat akun baru"}
