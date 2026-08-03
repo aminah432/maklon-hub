@@ -97,6 +97,8 @@ function ProductsPage() {
 
   const namaKategori = (id: string | null) =>
     categories.find((c) => c.id === id)?.name ?? "-";
+  const namaKlien = (id: string | null) => clients.find((c) => c.id === id)?.name ?? "-";
+  const namaBrand = (id: string | null) => brands.find((b) => b.id === id)?.name ?? "-";
 
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase();
