@@ -1,19 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { useMemo, useState } from "react";
 import { Archive, ArchiveRestore, Package, Pencil, Plus, Tags } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
+import { FilterBar } from "@/components/common/filter-bar";
 import { ProductFormDialog } from "@/features/products/product-form";
 import { CategoryManagerDialog } from "@/features/products/category-manager";
 import {
   useArchiveProduct,
+  useBrandOptions,
+  useClientOptions,
   useProductCategories,
   useProducts,
   type Product,
 } from "@/features/products/use-products";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,13 +29,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -42,6 +39,7 @@ import {
 import { useCompany } from "@/lib/company-context";
 import { PRODUCT_STATUSES } from "@/lib/constants";
 import { labelStatus } from "@/lib/format";
+
 
 export const Route = createFileRoute("/_authenticated/app/products")({
   component: ProductsPage,
