@@ -24,7 +24,11 @@ export function MascotLogo({
       <img
         src={maskotHead}
         alt=""
+        width={512}
+        height={512}
+        decoding="async"
         className="size-full object-contain"
+        style={{ imageRendering: "auto" }}
         draggable={false}
       />
       {blink ? (
@@ -49,12 +53,18 @@ export function Mascot({
     <img
       src={maskot}
       alt="Maskot Maklon Control Center"
+      width={831}
+      height={805}
+      decoding="async"
+      loading="lazy"
       draggable={false}
       className={cn(
-        "pointer-events-none select-none object-contain drop-shadow-xl",
+        // rasio asli 831:805 dijaga agar tidak pernah terpotong / gepeng
+        "pointer-events-none aspect-[831/805] h-auto max-w-full select-none object-contain drop-shadow-xl",
         float && "animate-soft-float",
         className,
       )}
     />
+
   );
 }

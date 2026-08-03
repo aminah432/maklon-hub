@@ -133,7 +133,7 @@ function AuthPage() {
           </ul>
         </div>
 
-        <Mascot className="pointer-events-none absolute bottom-4 right-4 hidden h-52 w-52 opacity-95 xl:block" />
+        <Mascot className="pointer-events-none absolute bottom-4 right-4 hidden w-[min(38vw,13rem)] opacity-95 xl:block 2xl:w-[min(30vw,16rem)]" />
 
         <p
           className="animate-rise-in relative flex items-center gap-2 text-xs opacity-70"
