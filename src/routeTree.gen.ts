@@ -25,6 +25,7 @@ import { Route as AuthenticatedAppProductionRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppProductsRouteImport } from './routes/_authenticated/app/products'
 import { Route as AuthenticatedAppQuotationsRouteImport } from './routes/_authenticated/app/quotations'
 import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authenticated/app/reports'
+import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app/settings'
 import { Route as AuthenticatedAppFinanceInvoicesRouteImport } from './routes/_authenticated/app/finance/invoices'
 import { Route as AuthenticatedAppFinancePaymentsRouteImport } from './routes/_authenticated/app/finance/payments'
 import { Route as AuthenticatedAppFinanceReceivablesRouteImport } from './routes/_authenticated/app/finance/receivables'
@@ -115,6 +116,12 @@ const AuthenticatedAppReportsRoute = AuthenticatedAppReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppSettingsRoute =
+  AuthenticatedAppSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppFinanceInvoicesRoute =
   AuthenticatedAppFinanceInvoicesRouteImport.update({
     id: '/finance/invoices',
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/app/products': typeof AuthenticatedAppProductsRoute
   '/app/quotations': typeof AuthenticatedAppQuotationsRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/finance/invoices': typeof AuthenticatedAppFinanceInvoicesRoute
   '/app/finance/payments': typeof AuthenticatedAppFinancePaymentsRoute
   '/app/finance/receivables': typeof AuthenticatedAppFinanceReceivablesRoute
@@ -170,6 +178,7 @@ export interface FileRoutesByTo {
   '/app/products': typeof AuthenticatedAppProductsRoute
   '/app/quotations': typeof AuthenticatedAppQuotationsRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/finance/invoices': typeof AuthenticatedAppFinanceInvoicesRoute
   '/app/finance/payments': typeof AuthenticatedAppFinancePaymentsRoute
   '/app/finance/receivables': typeof AuthenticatedAppFinanceReceivablesRoute
@@ -192,6 +201,7 @@ export interface FileRoutesById {
   '/_authenticated/app/products': typeof AuthenticatedAppProductsRoute
   '/_authenticated/app/quotations': typeof AuthenticatedAppQuotationsRoute
   '/_authenticated/app/reports': typeof AuthenticatedAppReportsRoute
+  '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
   '/_authenticated/app/finance/invoices': typeof AuthenticatedAppFinanceInvoicesRoute
   '/_authenticated/app/finance/payments': typeof AuthenticatedAppFinancePaymentsRoute
   '/_authenticated/app/finance/receivables': typeof AuthenticatedAppFinanceReceivablesRoute
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/app/products'
     | '/app/quotations'
     | '/app/reports'
+    | '/app/settings'
     | '/app/finance/invoices'
     | '/app/finance/payments'
     | '/app/finance/receivables'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/app/products'
     | '/app/quotations'
     | '/app/reports'
+    | '/app/settings'
     | '/app/finance/invoices'
     | '/app/finance/payments'
     | '/app/finance/receivables'
@@ -255,6 +267,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/products'
     | '/_authenticated/app/quotations'
     | '/_authenticated/app/reports'
+    | '/_authenticated/app/settings'
     | '/_authenticated/app/finance/invoices'
     | '/_authenticated/app/finance/payments'
     | '/_authenticated/app/finance/receivables'
@@ -380,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppReportsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/settings': {
+      id: '/_authenticated/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/finance/invoices': {
       id: '/_authenticated/app/finance/invoices'
       path: '/finance/invoices'
@@ -417,6 +437,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppProductsRoute: typeof AuthenticatedAppProductsRoute
   AuthenticatedAppQuotationsRoute: typeof AuthenticatedAppQuotationsRoute
   AuthenticatedAppReportsRoute: typeof AuthenticatedAppReportsRoute
+  AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
   AuthenticatedAppFinanceInvoicesRoute: typeof AuthenticatedAppFinanceInvoicesRoute
   AuthenticatedAppFinancePaymentsRoute: typeof AuthenticatedAppFinancePaymentsRoute
   AuthenticatedAppFinanceReceivablesRoute: typeof AuthenticatedAppFinanceReceivablesRoute
@@ -435,6 +456,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppProductsRoute: AuthenticatedAppProductsRoute,
   AuthenticatedAppQuotationsRoute: AuthenticatedAppQuotationsRoute,
   AuthenticatedAppReportsRoute: AuthenticatedAppReportsRoute,
+  AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
   AuthenticatedAppFinanceInvoicesRoute: AuthenticatedAppFinanceInvoicesRoute,
   AuthenticatedAppFinancePaymentsRoute: AuthenticatedAppFinancePaymentsRoute,
   AuthenticatedAppFinanceReceivablesRoute:
