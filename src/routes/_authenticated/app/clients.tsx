@@ -1,5 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { useMemo, useState } from "react";
+
 import { ArchiveRestore, Archive, Pencil, Plus, Users } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
@@ -7,7 +10,7 @@ import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { ClientFormDialog } from "@/features/clients/client-form";
 import { useArchiveClient, useClients, type Client } from "@/features/clients/use-clients";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FilterBar } from "@/components/common/filter-bar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,13 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Table,
   TableBody,
@@ -36,20 +33,31 @@ import {
 import { useCompany } from "@/lib/company-context";
 import { tanggalPendek } from "@/lib/format";
 
+const searchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+  status: fallback(z.string(), "semua").default("semua"),
+  kota: fallback(z.string(), "semua").default("semua"),
+  sumber: fallback(z.string(), "semua").default("semua"),
+  arsip: fallback(z.boolean(), false).default(false),
+});
+
+type ClientSearch = z.infer<typeof searchSchema>;
+
 export const Route = createFileRoute("/_authenticated/app/clients")({
   component: ClientsPage,
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Klien Maklon — Maklon Control Center" },
       {
         name: "description",
         content:
-          "Kelola data klien maklon: tambah, ubah, arsipkan, dan pantau status klien setiap perusahaan.",
+          "Kelola data klien maklon: cari cepat, filter status, kota, dan sumber, lalu tambah, ubah, atau arsipkan klien.",
       },
       { property: "og:title", content: "Klien Maklon — Maklon Control Center" },
       {
         property: "og:description",
-        content: "Pusat data klien maklon lintas perusahaan dengan pencarian dan arsip.",
+        content: "Pusat data klien maklon lintas perusahaan dengan pencarian, filter, dan arsip.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -59,28 +67,52 @@ export const Route = createFileRoute("/_authenticated/app/clients")({
 
 function ClientsPage() {
   const { scopeId, companyById, active, activeId } = useCompany();
-  const [archived, setArchived] = useState(false);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("semua");
+  const { q, status, kota, sumber, arsip } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const setSearch = (patch: Partial<ClientSearch>) =>
+    void navigate({
+      search: (prev: ClientSearch) => ({ ...prev, ...patch }),
+      replace: true,
+    });
+
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
   const [target, setTarget] = useState<Client | null>(null);
 
-  const { data = [], isLoading, isError, refetch } = useClients(scopeId, archived);
+  const { data = [], isLoading, isError, refetch } = useClients(scopeId, arsip);
   const archive = useArchiveClient();
 
+  const kotaOptions = useMemo(
+    () =>
+      Array.from(new Set(data.map((c) => c.city).filter((v): v is string => Boolean(v)))).sort(
+        (a, b) => a.localeCompare(b),
+      ),
+    [data],
+  );
+  const sumberOptions = useMemo(
+    () =>
+      Array.from(new Set(data.map((c) => c.source).filter((v): v is string => Boolean(v)))).sort(
+        (a, b) => a.localeCompare(b),
+      ),
+    [data],
+  );
+
   const rows = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const term = q.trim().toLowerCase();
     return data.filter((c) => {
       if (status !== "semua" && c.status !== status) return false;
-      if (!q) return true;
-      return [c.client_code, c.owner_name, c.business_name, c.city, c.phone, c.email]
+      if (kota !== "semua" && c.city !== kota) return false;
+      if (sumber !== "semua" && c.source !== sumber) return false;
+      if (!term) return true;
+      return [c.client_code, c.owner_name, c.business_name, c.city, c.phone, c.email, c.npwp, c.nib]
         .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q));
+        .some((v) => String(v).toLowerCase().includes(term));
     });
-  }, [data, search, status]);
+  }, [data, q, status, kota, sumber]);
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
+  const adaFilter = q.trim() !== "" || status !== "semua" || kota !== "semua" || sumber !== "semua";
+  const resetFilter = () => setSearch({ q: "", status: "semua", kota: "semua", sumber: "semua" });
 
   return (
     <>
@@ -89,8 +121,8 @@ function ClientsPage() {
         description={`Data klien — ${scope}`}
         actions={
           <>
-            <Button variant="outline" onClick={() => setArchived((v) => !v)}>
-              {archived ? "Lihat klien aktif" : "Lihat arsip"}
+            <Button variant="outline" onClick={() => setSearch({ arsip: !arsip })}>
+              {arsip ? "Lihat klien aktif" : "Lihat arsip"}
             </Button>
             <Button
               onClick={() => {
@@ -104,26 +136,44 @@ function ClientsPage() {
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cari kode, nama pemilik, usaha, atau kota"
-          aria-label="Cari klien"
-          className="rounded-xl"
-        />
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="rounded-xl" aria-label="Filter status">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="semua">Semua status</SelectItem>
-            <SelectItem value="prospek">Prospek</SelectItem>
-            <SelectItem value="aktif">Aktif</SelectItem>
-            <SelectItem value="nonaktif">Nonaktif</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <FilterBar
+        search={q}
+        onSearchChange={(v) => setSearch({ q: v })}
+        placeholder="Cari kode, nama pemilik, usaha, kota, telepon, atau email"
+        searchLabel="Cari klien"
+        filters={[
+          {
+            key: "status",
+            label: "Filter status klien",
+            value: status,
+            allLabel: "Semua status",
+            options: [
+              { value: "prospek", label: "Prospek" },
+              { value: "aktif", label: "Aktif" },
+              { value: "nonaktif", label: "Nonaktif" },
+            ],
+            onChange: (v) => setSearch({ status: v }),
+          },
+          {
+            key: "kota",
+            label: "Filter kota",
+            value: kota,
+            allLabel: "Semua kota",
+            options: kotaOptions.map((c) => ({ value: c, label: c })),
+            onChange: (v) => setSearch({ kota: v }),
+          },
+          {
+            key: "sumber",
+            label: "Filter sumber klien",
+            value: sumber,
+            allLabel: "Semua sumber",
+            options: sumberOptions.map((s) => ({ value: s, label: s })),
+            onChange: (v) => setSearch({ sumber: v }),
+          },
+        ]}
+        resultLabel={`${rows.length} dari ${data.length} klien`}
+        onReset={resetFilter}
+      />
 
       {isLoading ? (
         <LoadingSkeleton rows={5} />
@@ -132,17 +182,21 @@ function ClientsPage() {
       ) : rows.length === 0 ? (
         <EmptyState
           icon={Users}
-          title={archived ? "Belum ada klien diarsipkan" : "Belum ada klien"}
+          title={arsip ? "Belum ada klien diarsipkan" : "Belum ada klien"}
           description={
-            search || status !== "semua"
-              ? "Tidak ada klien yang cocok dengan filter. Coba ubah kata kunci atau status."
-              : archived
+            adaFilter
+              ? "Tidak ada klien yang cocok dengan filter. Coba ubah kata kunci, status, kota, atau sumber."
+              : arsip
                 ? "Klien yang diarsipkan akan muncul di sini."
                 : "Tambahkan klien maklon pertama untuk mulai membuat brand, produk, dan penawaran."
           }
           action={
-            archived ? (
-              <Button variant="outline" onClick={() => setArchived(false)}>
+            adaFilter ? (
+              <Button variant="outline" onClick={resetFilter}>
+                Reset filter
+              </Button>
+            ) : arsip ? (
+              <Button variant="outline" onClick={() => setSearch({ arsip: false })}>
                 Kembali ke klien aktif
               </Button>
             ) : (
@@ -157,6 +211,7 @@ function ClientsPage() {
             )
           }
         />
+
       ) : (
         <>
           {/* Tabel untuk layar lebar */}

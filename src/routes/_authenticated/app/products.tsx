@@ -1,19 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { useMemo, useState } from "react";
 import { Archive, ArchiveRestore, Package, Pencil, Plus, Tags } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
+import { FilterBar } from "@/components/common/filter-bar";
 import { ProductFormDialog } from "@/features/products/product-form";
 import { CategoryManagerDialog } from "@/features/products/category-manager";
 import {
   useArchiveProduct,
+  useBrandOptions,
+  useClientOptions,
   useProductCategories,
   useProducts,
   type Product,
 } from "@/features/products/use-products";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,13 +28,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -43,20 +40,33 @@ import { useCompany } from "@/lib/company-context";
 import { PRODUCT_STATUSES } from "@/lib/constants";
 import { labelStatus } from "@/lib/format";
 
+
+const searchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+  status: fallback(z.string(), "semua").default("semua"),
+  kategori: fallback(z.string(), "semua").default("semua"),
+  klien: fallback(z.string(), "semua").default("semua"),
+  brand: fallback(z.string(), "semua").default("semua"),
+  arsip: fallback(z.boolean(), false).default(false),
+});
+
+type ProductSearch = z.infer<typeof searchSchema>;
+
 export const Route = createFileRoute("/_authenticated/app/products")({
   component: ProductsPage,
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Produk Maklon — Maklon Control Center" },
       {
         name: "description",
         content:
-          "Kelola produk maklon: spesifikasi dasar, kategori, MOQ, status produksi, dan pengarsipan produk.",
+          "Kelola produk maklon: cari cepat, filter kategori, klien, dan brand, lalu atur spesifikasi, MOQ, dan arsip produk.",
       },
       { property: "og:title", content: "Produk Maklon — Maklon Control Center" },
       {
         property: "og:description",
-        content: "Katalog produk maklon lintas perusahaan lengkap dengan spesifikasi dan kategori.",
+        content: "Katalog produk maklon lintas perusahaan dengan pencarian dan filter lengkap.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -66,35 +76,51 @@ export const Route = createFileRoute("/_authenticated/app/products")({
 
 function ProductsPage() {
   const { scopeId, companyById, active, activeId } = useCompany();
-  const [archived, setArchived] = useState(false);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("semua");
-  const [category, setCategory] = useState("semua");
+  const { q, status, kategori, klien, brand, arsip } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const setSearch = (patch: Partial<ProductSearch>) =>
+    void navigate({
+      search: (prev: ProductSearch) => ({ ...prev, ...patch }),
+      replace: true,
+    });
+
   const [formOpen, setFormOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [target, setTarget] = useState<Product | null>(null);
 
-  const { data = [], isLoading, isError, refetch } = useProducts(scopeId, archived);
+  const { data = [], isLoading, isError, refetch } = useProducts(scopeId, arsip);
   const { data: categories = [] } = useProductCategories(scopeId);
+  const { data: clients = [] } = useClientOptions(scopeId);
+  const { data: brands = [] } = useBrandOptions(scopeId);
   const archive = useArchiveProduct();
 
   const namaKategori = (id: string | null) =>
     categories.find((c) => c.id === id)?.name ?? "-";
 
   const rows = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const term = q.trim().toLowerCase();
     return data.filter((p) => {
       if (status !== "semua" && p.status !== status) return false;
-      if (category !== "semua" && p.category_id !== category) return false;
-      if (!q) return true;
-      return [p.sku, p.name, p.variant, p.subcategory, p.packaging_type]
+      if (kategori !== "semua" && p.category_id !== kategori) return false;
+      if (klien !== "semua" && p.client_id !== klien) return false;
+      if (brand !== "semua" && p.brand_id !== brand) return false;
+      if (!term) return true;
+      return [p.sku, p.name, p.variant, p.subcategory, p.packaging_type, p.description]
         .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q));
+        .some((v) => String(v).toLowerCase().includes(term));
     });
-  }, [data, search, status, category]);
+  }, [data, q, status, kategori, klien, brand]);
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
+  const adaFilter =
+    q.trim() !== "" ||
+    status !== "semua" ||
+    kategori !== "semua" ||
+    klien !== "semua" ||
+    brand !== "semua";
+  const resetFilter = () =>
+    setSearch({ q: "", status: "semua", kategori: "semua", klien: "semua", brand: "semua" });
 
   return (
     <>
@@ -106,8 +132,8 @@ function ProductsPage() {
             <Button variant="outline" onClick={() => setCategoryOpen(true)}>
               <Tags className="size-4" aria-hidden /> Kategori
             </Button>
-            <Button variant="outline" onClick={() => setArchived((v) => !v)}>
-              {archived ? "Lihat produk aktif" : "Lihat arsip"}
+            <Button variant="outline" onClick={() => setSearch({ arsip: !arsip })}>
+              {arsip ? "Lihat produk aktif" : "Lihat arsip"}
             </Button>
             <Button
               onClick={() => {
@@ -121,41 +147,50 @@ function ProductsPage() {
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px_200px]">
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cari SKU, nama produk, varian, atau kemasan"
-          aria-label="Cari produk"
-          className="rounded-xl"
-        />
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="rounded-xl" aria-label="Filter status produk">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="semua">Semua status</SelectItem>
-            {PRODUCT_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {labelStatus(s)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger className="rounded-xl" aria-label="Filter kategori">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="semua">Semua kategori</SelectItem>
-            {categories.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <FilterBar
+        search={q}
+        onSearchChange={(v) => setSearch({ q: v })}
+        placeholder="Cari SKU, nama produk, varian, kemasan, atau deskripsi"
+        searchLabel="Cari produk"
+        filters={[
+          {
+            key: "status",
+            label: "Filter status produk",
+            value: status,
+            allLabel: "Semua status",
+            options: PRODUCT_STATUSES.map((s) => ({ value: s, label: labelStatus(s) })),
+            onChange: (v) => setSearch({ status: v }),
+          },
+          {
+            key: "kategori",
+            label: "Filter kategori",
+            value: kategori,
+            allLabel: "Semua kategori",
+            options: categories.map((c) => ({ value: c.id, label: c.name })),
+            onChange: (v) => setSearch({ kategori: v }),
+          },
+          {
+            key: "klien",
+            label: "Filter klien",
+            value: klien,
+            allLabel: "Semua klien",
+            options: clients.map((c) => ({ value: c.id, label: c.name })),
+            onChange: (v) => setSearch({ klien: v, brand: "semua" }),
+          },
+          {
+            key: "brand",
+            label: "Filter brand",
+            value: brand,
+            allLabel: "Semua brand",
+            options: brands
+              .filter((b) => klien === "semua" || b.client_id === klien)
+              .map((b) => ({ value: b.id, label: b.name })),
+            onChange: (v) => setSearch({ brand: v }),
+          },
+        ]}
+        resultLabel={`${rows.length} dari ${data.length} produk`}
+        onReset={resetFilter}
+      />
 
       {isLoading ? (
         <LoadingSkeleton rows={5} />
@@ -164,17 +199,21 @@ function ProductsPage() {
       ) : rows.length === 0 ? (
         <EmptyState
           icon={Package}
-          title={archived ? "Belum ada produk diarsipkan" : "Belum ada produk"}
+          title={arsip ? "Belum ada produk diarsipkan" : "Belum ada produk"}
           description={
-            search || status !== "semua" || category !== "semua"
-              ? "Tidak ada produk yang cocok dengan filter. Coba ubah kata kunci, status, atau kategori."
-              : archived
+            adaFilter
+              ? "Tidak ada produk yang cocok dengan filter. Coba ubah kata kunci, status, kategori, klien, atau brand."
+              : arsip
                 ? "Produk yang diarsipkan akan muncul di sini."
                 : "Tambahkan produk maklon pertama lengkap dengan spesifikasi dasarnya."
           }
           action={
-            archived ? (
-              <Button variant="outline" onClick={() => setArchived(false)}>
+            adaFilter ? (
+              <Button variant="outline" onClick={resetFilter}>
+                Reset filter
+              </Button>
+            ) : arsip ? (
+              <Button variant="outline" onClick={() => setSearch({ arsip: false })}>
                 Kembali ke produk aktif
               </Button>
             ) : (
@@ -189,6 +228,7 @@ function ProductsPage() {
             )
           }
         />
+
       ) : (
         <>
           <div className="hidden overflow-hidden rounded-2xl border border-border/70 bg-card lg:block">
