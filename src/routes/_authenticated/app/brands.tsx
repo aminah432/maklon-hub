@@ -65,8 +65,13 @@ function BrandsPage() {
   const { scopeId, companyById, active, activeId } = useCompany();
   const { q, status, klien, arsip } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const setSearch = (patch: Record<string, unknown>) =>
-    void navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true });
+  type BrandSearch = z.infer<typeof searchSchema>;
+  const setSearch = (patch: Partial<BrandSearch>) =>
+    void navigate({
+      search: (prev: BrandSearch) => ({ ...prev, ...patch }),
+      replace: true,
+    });
+
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Brand | null>(null);
