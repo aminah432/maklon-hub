@@ -10,7 +10,7 @@ import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { ClientFormDialog } from "@/features/clients/client-form";
 import { useArchiveClient, useClients, type Client } from "@/features/clients/use-clients";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FilterBar } from "@/components/common/filter-bar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,13 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Table,
   TableBody,
