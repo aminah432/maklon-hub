@@ -15,6 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CompanySwitcher } from "@/components/layout/company-switcher";
+import { useCompany } from "@/lib/company-context";
+import { logoPerusahaan, skalaLogo } from "@/lib/company-logo";
+
 import { NAV_ITEMS, MOBILE_NAV } from "@/lib/constants";
 import { inisial, sapaan } from "@/lib/format";
 import { cn } from "@/lib/utils";
