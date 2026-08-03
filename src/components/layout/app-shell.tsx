@@ -21,6 +21,9 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
+/** Rute pengaturan belum dibuat; string lebar agar aman saat rute ditambahkan. */
+const SETTINGS_PATH: string = "/app/settings";
+
 function NavList({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
   return (
     <nav className="space-y-1" aria-label="Navigasi utama">
