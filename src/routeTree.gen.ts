@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppActivitiesRouteImport } from './routes/_authenticated/app/activities'
 import { Route as AuthenticatedAppBrandsRouteImport } from './routes/_authenticated/app/brands'
 import { Route as AuthenticatedAppBrokersRouteImport } from './routes/_authenticated/app/brokers'
 import { Route as AuthenticatedAppClientsRouteImport } from './routes/_authenticated/app/clients'
@@ -47,6 +48,12 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAppActivitiesRoute =
+  AuthenticatedAppActivitiesRouteImport.update({
+    id: '/activities',
+    path: '/activities',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppBrandsRoute = AuthenticatedAppBrandsRouteImport.update({
   id: '/brands',
   path: '/brands',
@@ -131,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/activities': typeof AuthenticatedAppActivitiesRoute
   '/app/brands': typeof AuthenticatedAppBrandsRoute
   '/app/brokers': typeof AuthenticatedAppBrokersRoute
   '/app/clients': typeof AuthenticatedAppClientsRoute
@@ -150,6 +158,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/activities': typeof AuthenticatedAppActivitiesRoute
   '/app/brands': typeof AuthenticatedAppBrandsRoute
   '/app/brokers': typeof AuthenticatedAppBrokersRoute
   '/app/clients': typeof AuthenticatedAppClientsRoute
@@ -171,6 +180,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/activities': typeof AuthenticatedAppActivitiesRoute
   '/_authenticated/app/brands': typeof AuthenticatedAppBrandsRoute
   '/_authenticated/app/brokers': typeof AuthenticatedAppBrokersRoute
   '/_authenticated/app/clients': typeof AuthenticatedAppClientsRoute
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
+    | '/app/activities'
     | '/app/brands'
     | '/app/brokers'
     | '/app/clients'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
+    | '/app/activities'
     | '/app/brands'
     | '/app/brokers'
     | '/app/clients'
@@ -231,6 +243,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
+    | '/_authenticated/app/activities'
     | '/_authenticated/app/brands'
     | '/_authenticated/app/brokers'
     | '/_authenticated/app/clients'
@@ -282,6 +295,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/activities': {
+      id: '/_authenticated/app/activities'
+      path: '/activities'
+      fullPath: '/app/activities'
+      preLoaderRoute: typeof AuthenticatedAppActivitiesRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/brands': {
       id: '/_authenticated/app/brands'
@@ -385,6 +405,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppActivitiesRoute: typeof AuthenticatedAppActivitiesRoute
   AuthenticatedAppBrandsRoute: typeof AuthenticatedAppBrandsRoute
   AuthenticatedAppBrokersRoute: typeof AuthenticatedAppBrokersRoute
   AuthenticatedAppClientsRoute: typeof AuthenticatedAppClientsRoute
@@ -402,6 +423,7 @@ interface AuthenticatedAppRouteChildren {
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppActivitiesRoute: AuthenticatedAppActivitiesRoute,
   AuthenticatedAppBrandsRoute: AuthenticatedAppBrandsRoute,
   AuthenticatedAppBrokersRoute: AuthenticatedAppBrokersRoute,
   AuthenticatedAppClientsRoute: AuthenticatedAppClientsRoute,
