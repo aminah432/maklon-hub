@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { Building2 } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { LogOut } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { LoadingSkeleton, ErrorState } from "@/components/common/states";
 import { RecordFormDialog, type FormValues } from "@/components/common/record-form";
 import { CategoryManagerDialog } from "@/features/products/category-manager";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useRows, useSaveRow, type DbRow } from "@/lib/db";
@@ -34,6 +36,15 @@ function SettingsPage() {
   const { user } = useAuth();
   const [edit, setEdit] = useState<DbRow | null>(null);
   const [kategori, setKategori] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const keluar = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
 
   const companies = useRows<DbRow>("companies", { orderBy: "code", asc: true });
   const simpan = useSaveRow("companies", { label: "Perusahaan", invalidate: ["companies"] });
@@ -54,11 +65,16 @@ function SettingsPage() {
         }
       />
 
-      <section className="mb-6 rounded-2xl border border-border/70 bg-card p-5">
-        <h2 className="text-sm font-semibold">Akun</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Masuk sebagai <span className="font-medium text-foreground">{user?.email ?? "-"}</span>
-        </p>
+      <section className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card p-5">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold">Akun</h2>
+          <p className="mt-2 truncate text-sm text-muted-foreground">
+            Masuk sebagai <span className="font-medium text-foreground">{user?.email ?? "-"}</span>
+          </p>
+        </div>
+        <Button variant="destructive" className="gap-2 rounded-xl" onClick={() => void keluar()}>
+          <LogOut className="size-4" aria-hidden /> Keluar
+        </Button>
       </section>
 
       {companies.isLoading ? (
