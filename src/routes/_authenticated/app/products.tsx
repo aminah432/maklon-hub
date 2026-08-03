@@ -97,6 +97,8 @@ function ProductsPage() {
 
   const namaKategori = (id: string | null) =>
     categories.find((c) => c.id === id)?.name ?? "-";
+  const namaKlien = (id: string | null) => clients.find((c) => c.id === id)?.name ?? "-";
+  const namaBrand = (id: string | null) => brands.find((b) => b.id === id)?.name ?? "-";
 
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -238,10 +240,12 @@ function ProductsPage() {
                   <TableHead>SKU</TableHead>
                   <TableHead>Produk</TableHead>
                   <TableHead>Perusahaan</TableHead>
+                  <TableHead>Klien / Brand</TableHead>
                   <TableHead>Kategori</TableHead>
                   <TableHead>Isi / Satuan</TableHead>
                   <TableHead className="text-right">MOQ</TableHead>
                   <TableHead>Status</TableHead>
+
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -259,6 +263,12 @@ function ProductsPage() {
                       </TableCell>
                       <TableCell>
                         <CompanyBadge code={perusahaan?.code ?? null} name={perusahaan?.name ?? null} />
+                      </TableCell>
+                      <TableCell>
+                        <span className="block">{namaKlien(p.client_id)}</span>
+                        <span className="block text-xs text-muted-foreground">
+                          {namaBrand(p.brand_id)}
+                        </span>
                       </TableCell>
                       <TableCell>{namaKategori(p.category_id)}</TableCell>
                       <TableCell>
@@ -307,6 +317,14 @@ function ProductsPage() {
                       <dd>
                         <CompanyBadge code={perusahaan?.code ?? null} name={perusahaan?.name ?? null} />
                       </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Klien</dt>
+                      <dd className="truncate">{namaKlien(p.client_id)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Brand</dt>
+                      <dd className="truncate">{namaBrand(p.brand_id)}</dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">Kategori</dt>
