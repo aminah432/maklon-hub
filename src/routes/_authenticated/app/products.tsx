@@ -264,6 +264,12 @@ function ProductsPage() {
                       <TableCell>
                         <CompanyBadge code={perusahaan?.code ?? null} name={perusahaan?.name ?? null} />
                       </TableCell>
+                      <TableCell>
+                        <span className="block">{namaKlien(p.client_id)}</span>
+                        <span className="block text-xs text-muted-foreground">
+                          {namaBrand(p.brand_id)}
+                        </span>
+                      </TableCell>
                       <TableCell>{namaKategori(p.category_id)}</TableCell>
                       <TableCell>
                         {p.net_content ? `${p.net_content} ` : ""}
