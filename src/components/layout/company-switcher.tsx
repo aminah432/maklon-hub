@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown, Building2, Layers } from "lucide-react";
+import { Check, ChevronsUpDown, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
