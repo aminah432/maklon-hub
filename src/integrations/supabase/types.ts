@@ -675,6 +675,38 @@ export type Database = {
           },
         ]
       }
+      document_counters: {
+        Row: {
+          company_id: string
+          current_value: number
+          doc_type: string
+          id: string
+          period: string
+        }
+        Insert: {
+          company_id: string
+          current_value?: number
+          doc_type: string
+          id?: string
+          period?: string
+        }
+        Update: {
+          company_id?: string
+          current_value?: number
+          doc_type?: string
+          id?: string
+          period?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_counters_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           archived_at: string | null
@@ -2222,6 +2254,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      next_document_number: {
+        Args: { _company_id: string; _doc_type: string }
+        Returns: string
       }
     }
     Enums: {
