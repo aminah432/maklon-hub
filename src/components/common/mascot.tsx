@@ -24,7 +24,11 @@ export function MascotLogo({
       <img
         src={maskotHead}
         alt=""
+        width={512}
+        height={512}
+        decoding="async"
         className="size-full object-contain"
+        style={{ imageRendering: "auto" }}
         draggable={false}
       />
       {blink ? (
