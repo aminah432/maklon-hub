@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { Mascot, MascotLogo } from "@/components/common/mascot";
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -87,14 +89,15 @@ function AuthPage() {
         />
 
         <div className="animate-rise-in relative flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-2xl bg-primary-foreground/15 text-lg font-black backdrop-blur">
-            M
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary-foreground/15 backdrop-blur">
+            <MascotLogo size={34} />
           </span>
           <div className="leading-tight">
             <p className="text-sm font-bold">Maklon Control Center</p>
             <p className="text-xs opacity-70">Administrasi tiga perusahaan, satu kendali</p>
           </div>
         </div>
+
 
         <div className="relative max-w-lg">
           <h2
@@ -130,6 +133,8 @@ function AuthPage() {
           </ul>
         </div>
 
+        <Mascot className="pointer-events-none absolute bottom-4 right-4 hidden h-52 w-52 opacity-95 xl:block" />
+
         <p
           className="animate-rise-in relative flex items-center gap-2 text-xs opacity-70"
           style={{ animationDelay: "0.7s" }}
@@ -141,11 +146,11 @@ function AuthPage() {
 
       <section className="flex items-center justify-center bg-white px-5 py-12 sm:px-10">
         <div className="w-full max-w-sm">
-          <div className="mb-8 lg:hidden">
-            <span className="grid size-11 place-items-center rounded-2xl bg-primary text-lg font-black text-primary-foreground">
-              M
-            </span>
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <MascotLogo size={44} />
+            <span className="text-sm font-semibold text-neutral-700">Maklon Control Center</span>
           </div>
+
 
           <h1 className="text-2xl font-black tracking-tight text-neutral-900">
             {mode === "masuk" ? "Selamat datang kembali" : "Buat akun baru"}

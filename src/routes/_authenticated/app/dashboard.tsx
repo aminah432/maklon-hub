@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { FloatingCard } from "@/components/common/floating-card";
+import { Mascot } from "@/components/common/mascot";
+
 import { StatusBadge } from "@/components/common/status-badge";
 import { LoadingSkeleton } from "@/components/common/states";
 import { Button } from "@/components/ui/button";
@@ -314,7 +316,17 @@ function DashboardPage() {
 
   return (
     <>
+      <div className="mb-5 flex items-center gap-4 overflow-hidden rounded-3xl border border-border/70 bg-card px-5 py-4">
+        <Mascot float className="h-20 w-20 shrink-0 sm:h-24 sm:w-24" />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">Maklon Control Center</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Asisten maklon Anda memantau {scope.toLowerCase()} — HPP, produksi, hingga penagihan.
+          </p>
+        </div>
+      </div>
       <PageHeader
+
         title={sapaan()}
         description={`Ringkasan KPI ${scope} · ${dari === SEMUA ? "seluruh periode" : `${tanggalPendek(dari)} – ${tanggalPendek(sampai)}`}`}
         actions={

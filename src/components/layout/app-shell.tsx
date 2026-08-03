@@ -17,6 +17,8 @@ import {
 import { CompanySwitcher } from "@/components/layout/company-switcher";
 import { useCompany } from "@/lib/company-context";
 import { logoPerusahaan, skalaLogo } from "@/lib/company-logo";
+import { MascotLogo } from "@/components/common/mascot";
+
 
 import { NAV_ITEMS, MOBILE_NAV } from "@/lib/constants";
 import { inisial, sapaan } from "@/lib/format";
@@ -65,10 +67,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: (() => void) | undefined 
             />
           </span>
         ) : (
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-sm font-black text-primary-foreground">
-            M
-          </span>
+          <MascotLogo size={36} />
         )}
+
         <span className="min-w-0">
           <span className="block truncate text-sm font-bold leading-tight">
             {activeId === "all" ? "Maklon Control" : (active?.name ?? "Maklon Control")}
