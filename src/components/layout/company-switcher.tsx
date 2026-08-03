@@ -90,8 +90,9 @@ export function CompanySwitcher({ collapsed = false }: { collapsed?: boolean }) 
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {companies.map((c) => (
-          <DropdownMenuItem key={c.id} className="gap-2 rounded-xl" onClick={() => setActive(c.id)}>
-            <Building2 className="size-4" aria-hidden />
+          <DropdownMenuItem key={c.id} className="gap-2 rounded-xl py-2" onClick={() => setActive(c.id)}>
+            <LogoPerusahaan code={String(c.code ?? "")} nama={String(c.name ?? "")} size="sm" />
+
             <span className="flex-1 truncate">
               {c.code} — {c.name}
             </span>
