@@ -89,6 +89,10 @@ function DashboardPage() {
   const batches = useRows<DbRow>("production_batches", { scopeId });
   const invoices = useRows<DbRow>("invoices", { scopeId, orderBy: "invoice_date" });
   const payments = useRows<DbRow>("payments", { scopeId, orderBy: "payment_date" });
+  const products = useRows<DbRow>("products", { scopeId, archived: false });
+  const brands = useRows<DbRow>("brands", { scopeId });
+  const brokers = useRows<DbRow>("brokers", { scopeId, archived: false });
+  const brokerFees = useRows<DbRow>("broker_fees", { scopeId });
 
   const memuat =
     clients.isLoading ||
