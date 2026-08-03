@@ -200,6 +200,7 @@ function AuthPage() {
                   )}
                 </button>
               </div>
+            </div>
             <Button type="submit" className="h-11 w-full rounded-xl" disabled={loading}>
               {loading ? "Memproses…" : mode === "masuk" ? "Masuk" : "Daftar"}
             </Button>
