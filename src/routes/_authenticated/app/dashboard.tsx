@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { FloatingCard } from "@/components/common/floating-card";
+import { Mascot } from "@/components/common/mascot";
+
 import { StatusBadge } from "@/components/common/status-badge";
 import { LoadingSkeleton } from "@/components/common/states";
 import { Button } from "@/components/ui/button";
