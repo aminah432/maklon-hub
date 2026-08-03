@@ -87,14 +87,15 @@ function AuthPage() {
         />
 
         <div className="animate-rise-in relative flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-2xl bg-primary-foreground/15 text-lg font-black backdrop-blur">
-            M
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary-foreground/15 backdrop-blur">
+            <MascotLogo size={34} />
           </span>
           <div className="leading-tight">
             <p className="text-sm font-bold">Maklon Control Center</p>
             <p className="text-xs opacity-70">Administrasi tiga perusahaan, satu kendali</p>
           </div>
         </div>
+
 
         <div className="relative max-w-lg">
           <h2
