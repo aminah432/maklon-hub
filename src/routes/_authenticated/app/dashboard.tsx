@@ -67,7 +67,7 @@ function DashboardPage() {
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
   const setRentang = (d: string, s: string) =>
-    navigate({ search: (prev) => ({ ...prev, dari: d, sampai: s }) });
+    navigate({ search: { dari: d, sampai: s } });
 
   const clients = useRows<DbRow>("clients", { scopeId, archived: false });
   const orders = useRows<DbRow>("orders", { scopeId, orderBy: "order_date" });
