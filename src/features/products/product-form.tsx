@@ -46,10 +46,7 @@ import {
 const opsional = (max: number) =>
   z.string().trim().max(max, { message: `Maksimal ${max} karakter` }).optional().or(z.literal(""));
 
-const angkaOpsional = z
-  .union([z.number(), z.nan()])
-  .optional()
-  .transform((v) => (v === undefined || Number.isNaN(v) ? null : v));
+const angkaOpsional = z.number().optional();
 
 export const productSchema = z.object({
   company_id: z.string().uuid({ message: "Perusahaan wajib dipilih" }),
@@ -78,8 +75,7 @@ export const productSchema = z.object({
   specifications: z.record(z.string(), z.string()),
 });
 
-export type ProductFormValues = z.input<typeof productSchema>;
-type ProductFormOutput = z.output<typeof productSchema>;
+export type ProductFormValues = z.infer<typeof productSchema>;
 
 const kosong = (v: string | undefined) => (v && v.trim() !== "" ? v.trim() : null);
 const numOrEmpty = (v: number | null | undefined) => (v === null || v === undefined ? undefined : v);
@@ -96,7 +92,7 @@ export function ProductFormDialog({
   const { companies, scopeId, companyById } = useCompany();
   const queryClient = useQueryClient();
 
-  const form = useForm<ProductFormValues, unknown, ProductFormOutput>({
+  const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       company_id: product?.company_id ?? scopeId ?? "",
@@ -156,7 +152,7 @@ export function ProductFormDialog({
   }, [open, product?.id]);
 
   const simpan = useMutation({
-    mutationFn: async (values: ProductFormOutput) => {
+    mutationFn: async (values: ProductFormValues) => {
       const specifications = Object.fromEntries(
         Object.entries(values.specifications ?? {}).filter(([, v]) => v.trim() !== ""),
       );
@@ -169,11 +165,11 @@ export function ProductFormDialog({
         subcategory: kosong(values.subcategory),
         variant: kosong(values.variant),
         description: kosong(values.description),
-        net_content: values.net_content,
+        net_content: values.net_content ?? null,
         unit: values.unit.trim(),
         moq: values.moq,
-        standard_batch_quantity: values.standard_batch_quantity,
-        shelf_life_months: values.shelf_life_months,
+        standard_batch_quantity: values.standard_batch_quantity ?? null,
+        shelf_life_months: values.shelf_life_months ?? null,
         packaging_type: kosong(values.packaging_type),
         status: values.status,
         notes: kosong(values.notes),
