@@ -199,8 +199,8 @@
 }
 
 @utility surface {
-  background-color: color-mix(in oklab, var(--color-card) 88%, transparent);
-  backdrop-filter: saturate(140%) blur(10px);
+  /* Tanpa backdrop-filter: jauh lebih ringan saat scroll. */
+  background-color: var(--color-card);
   border: 1px solid color-mix(in oklab, var(--color-border) 70%, transparent);
   box-shadow: var(--shadow-soft);
   border-radius: var(--radius-xl);
