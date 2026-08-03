@@ -240,10 +240,12 @@ function ProductsPage() {
                   <TableHead>SKU</TableHead>
                   <TableHead>Produk</TableHead>
                   <TableHead>Perusahaan</TableHead>
+                  <TableHead>Klien / Brand</TableHead>
                   <TableHead>Kategori</TableHead>
                   <TableHead>Isi / Satuan</TableHead>
                   <TableHead className="text-right">MOQ</TableHead>
                   <TableHead>Status</TableHead>
+
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
