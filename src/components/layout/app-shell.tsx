@@ -44,15 +44,35 @@ function NavList({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
+  const { active, activeId } = useCompany();
+  const logo = activeId === "all" ? undefined : logoPerusahaan(active?.code);
+
   return (
     <div className="flex h-full flex-col gap-4 p-4">
       <div className="flex min-w-0 items-center gap-2.5 px-1">
-        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-sm font-black text-primary-foreground">
-          M
-        </span>
+        {logo ? (
+          <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-0.5">
+            <img
+              src={logo}
+              alt={`Logo ${active?.name ?? "perusahaan"}`}
+              className={cn(
+                "size-full object-contain transition-transform duration-300",
+                skalaLogo(active?.code),
+              )}
+            />
+          </span>
+        ) : (
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-sm font-black text-primary-foreground">
+            M
+          </span>
+        )}
         <span className="min-w-0">
-          <span className="block truncate text-sm font-bold leading-tight">Maklon Control</span>
-          <span className="block truncate text-xs text-muted-foreground">Center</span>
+          <span className="block truncate text-sm font-bold leading-tight">
+            {activeId === "all" ? "Maklon Control" : (active?.name ?? "Maklon Control")}
+          </span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {activeId === "all" ? "Center" : (active?.code ?? "Center")}
+          </span>
         </span>
       </div>
       <CompanySwitcher />
@@ -62,6 +82,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: (() => void) | undefined 
     </div>
   );
 }
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
