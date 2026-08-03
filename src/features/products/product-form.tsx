@@ -16,7 +16,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -581,9 +580,9 @@ export function ProductFormDialog({
                   ))
                 )}
                 {specFields.length > 0 ? (
-                  <FormDescription className="sm:col-span-2">
+                  <p className="text-sm text-muted-foreground sm:col-span-2">
                     Field spesifikasi menyesuaikan jenis produk {perusahaan?.code}.
-                  </FormDescription>
+                  </p>
                 ) : null}
               </TabsContent>
             </Tabs>
