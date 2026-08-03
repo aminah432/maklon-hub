@@ -1,12 +1,12 @@
-import shenjuu from "@/assets/shenjuu-logo.png.asset.json";
-import dna from "@/assets/dna-logo.jpg.asset.json";
-import bmmf from "@/assets/bmmf-logo.png.asset.json";
+import shenjuu from "@/assets/shenjuu-logo.webp";
+import dna from "@/assets/dna-logo.jpg";
+import bmmf from "@/assets/bmmf-logo.png";
 
-/** Logo resmi per kode perusahaan. */
+/** Logo resmi per kode perusahaan (di-bundle Vite, ikut ke repo & deploy). */
 const LOGO: Record<string, string> = {
-  SHJ: shenjuu.url,
-  DNA: dna.url,
-  BMMF: bmmf.url,
+  SHJ: shenjuu,
+  DNA: dna,
+  BMMF: bmmf,
 };
 
 /**
