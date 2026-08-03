@@ -51,6 +51,8 @@ export const Route = createFileRoute("/_authenticated/app/dashboard")({
 
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
+const SEMUA = "2000-01-01";
+
 function mundur(hari: number): string {
   const d = new Date();
   d.setDate(d.getDate() - hari);
@@ -62,7 +64,7 @@ function DashboardPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
-  const dari = search.dari || mundur(180);
+  const dari = search.dari || SEMUA;
   const sampai = search.sampai || isoDate(new Date());
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
@@ -194,17 +196,17 @@ function DashboardPage() {
   ];
 
   const presets = [
+    { label: "Semua", d: SEMUA },
     { label: "30 hari", d: mundur(30) },
     { label: "90 hari", d: mundur(90) },
     { label: "6 bulan", d: mundur(180) },
-    { label: "1 tahun", d: mundur(365) },
   ];
 
   return (
     <>
       <PageHeader
         title={`${sapaan()} 👋`}
-        description={`Ringkasan KPI ${scope} · ${tanggalPendek(dari)} – ${tanggalPendek(sampai)}`}
+        description={`Ringkasan KPI ${scope} · ${dari === SEMUA ? "seluruh periode" : `${tanggalPendek(dari)} – ${tanggalPendek(sampai)}`}`}
         actions={
           <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-border/70 bg-card p-1.5">
             {presets.map((p) => (
