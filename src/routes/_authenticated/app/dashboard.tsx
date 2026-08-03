@@ -205,7 +205,7 @@ function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={`${sapaan()} 👋`}
+        title={sapaan()}
         description={`Ringkasan KPI ${scope} · ${dari === SEMUA ? "seluruh periode" : `${tanggalPendek(dari)} – ${tanggalPendek(sampai)}`}`}
         actions={
           <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-border/70 bg-card p-1.5">
@@ -262,7 +262,7 @@ function DashboardPage() {
                       <k.icon className="size-4" aria-hidden />
                     </span>
                   </div>
-                  <p className="num mt-3 text-2xl font-bold tracking-tight">{k.nilai}</p>
+                  <p className="num mt-3 truncate text-xl font-bold tracking-tight sm:text-2xl">{k.nilai}</p>
                   <p className="mt-1 truncate text-xs text-muted-foreground">{k.sub}</p>
                 </FloatingCard>
               </Link>
@@ -317,6 +317,7 @@ function DashboardPage() {
                       stroke="var(--chart-1)"
                       strokeWidth={2.5}
                       fill="url(#gOmzet)"
+                      isAnimationActive={false}
                     />
                     <Area
                       type="monotone"
@@ -325,6 +326,7 @@ function DashboardPage() {
                       stroke="var(--chart-3)"
                       strokeWidth={2}
                       fill="url(#gKas)"
+                      isAnimationActive={false}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -365,7 +367,13 @@ function DashboardPage() {
                         background: "var(--card)",
                       }}
                     />
-                    <Bar dataKey="omzet" name="Omzet" radius={[999, 999, 8, 8]} barSize={26}>
+                    <Bar
+                      dataKey="omzet"
+                      name="Omzet"
+                      radius={[999, 999, 8, 8]}
+                      barSize={26}
+                      isAnimationActive={false}
+                    >
                       {seri.map((r) => (
                         <Cell
                           key={r.label}
