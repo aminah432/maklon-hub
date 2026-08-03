@@ -9,12 +9,24 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertTriangle, ArrowUpRight, Factory, TrendingUp, Wallet } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  Boxes,
+  Factory,
+  Handshake,
+  Package,
+  TrendingUp,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { FloatingCard } from "@/components/common/floating-card";
 import { StatusBadge } from "@/components/common/status-badge";
@@ -77,6 +89,10 @@ function DashboardPage() {
   const batches = useRows<DbRow>("production_batches", { scopeId });
   const invoices = useRows<DbRow>("invoices", { scopeId, orderBy: "invoice_date" });
   const payments = useRows<DbRow>("payments", { scopeId, orderBy: "payment_date" });
+  const products = useRows<DbRow>("products", { scopeId, archived: false });
+  const brands = useRows<DbRow>("brands", { scopeId });
+  const brokers = useRows<DbRow>("brokers", { scopeId, archived: false });
+  const brokerFees = useRows<DbRow>("broker_fees", { scopeId });
 
   const memuat =
     clients.isLoading ||
@@ -151,6 +167,100 @@ function DashboardPage() {
   }, [kpi.orderPeriode, payments.data, dari, sampai]);
 
   const puncak = seri.reduce((m, r) => Math.max(m, r.omzet), 0);
+
+  /* ==== Data tambahan: klien, produk, brand, fee makelar ==== */
+  const ekstra = useMemo(() => {
+    const kl = clients.data ?? [];
+    const pr = products.data ?? [];
+    const br = brands.data ?? [];
+    const bf = brokerFees.data ?? [];
+    const klienAktif = kl.filter((c) => String(c["status"]) === "aktif").length;
+    const klienBaru = kl.filter((c) => dalam(c["created_at"] ?? c["joined_at"])).length;
+    const produkAktif = pr.filter((p) => String(p["status"]) === "aktif").length;
+    const feeTotal = bf.reduce((s, f) => s + Number(f["fee_amount"] ?? 0), 0);
+    const feeSisa = bf.reduce((s, f) => s + Number(f["remaining_amount"] ?? 0), 0);
+
+    const perKlien = new Map<string, number>();
+    for (const p of pr) perKlien.set(String(p["client_id"] ?? "-"), (perKlien.get(String(p["client_id"] ?? "-")) ?? 0) + 1);
+    const produkTeratas = [...perKlien.entries()]
+      .map(([id, jumlah]) => ({
+        nama: String(kl.find((c) => String(c["id"]) === id)?.["business_name"] ?? kl.find((c) => String(c["id"]) === id)?.["owner_name"] ?? "Tanpa klien"),
+        jumlah,
+      }))
+      .sort((a, b) => b.jumlah - a.jumlah)
+      .slice(0, 6);
+
+    const perMakelar = new Map<string, number>();
+    for (const f of bf) perMakelar.set(String(f["broker_id"] ?? "-"), (perMakelar.get(String(f["broker_id"] ?? "-")) ?? 0) + Number(f["fee_amount"] ?? 0));
+    const feeTeratas = [...perMakelar.entries()]
+      .map(([id, nilai]) => ({
+        nama: String((brokers.data ?? []).find((b) => String(b["id"]) === id)?.["name"] ?? "Lainnya"),
+        nilai,
+      }))
+      .filter((r) => r.nilai > 0)
+      .sort((a, b) => b.nilai - a.nilai)
+      .slice(0, 6);
+
+    const statusProduk = new Map<string, number>();
+    for (const p of pr) statusProduk.set(String(p["status"]), (statusProduk.get(String(p["status"])) ?? 0) + 1);
+    const komposisiProduk = [...statusProduk.entries()].map(([s, jumlah]) => ({
+      nama: labelStatus(s),
+      jumlah,
+    }));
+
+    return {
+      klienAktif,
+      klienBaru,
+      totalKlien: kl.length,
+      produkAktif,
+      totalProduk: pr.length,
+      totalBrand: br.length,
+      feeTotal,
+      feeSisa,
+      produkTeratas,
+      feeTeratas,
+      komposisiProduk,
+    };
+  }, [clients.data, products.data, brands.data, brokerFees.data, brokers.data, dari, sampai]);
+
+  const WARNA_PIE = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+
+  const kartuEkstra = [
+    {
+      label: "Klien aktif",
+      nilai: angka(ekstra.klienAktif),
+      sub: `${angka(ekstra.totalKlien)} total klien · ${angka(ekstra.klienBaru)} baru`,
+      to: "/app/clients",
+      icon: Users,
+      tone: "primary" as const,
+    },
+    {
+      label: "Produk aktif",
+      nilai: angka(ekstra.produkAktif),
+      sub: `${angka(ekstra.totalProduk)} produk terdaftar`,
+      to: "/app/products",
+      icon: Package,
+      tone: "info" as const,
+    },
+    {
+      label: "Brand dikelola",
+      nilai: angka(ekstra.totalBrand),
+      sub: "Merek milik klien maklon",
+      to: "/app/brands",
+      icon: Boxes,
+      tone: "success" as const,
+    },
+    {
+      label: "Fee makelar",
+      nilai: rupiah(ekstra.feeTotal),
+      sub: `Belum dibayar ${rupiah(ekstra.feeSisa)}`,
+      to: "/app/brokers",
+      icon: Handshake,
+      tone: "danger" as const,
+    },
+  ];
+
+
 
   const kartu = [
     {
@@ -268,6 +378,168 @@ function DashboardPage() {
               </Link>
             ))}
           </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {kartuEkstra.map((k) => (
+              <Link key={k.label} to={k.to} className="block">
+                <FloatingCard className="h-full overflow-hidden p-5">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm text-muted-foreground">{k.label}</p>
+                    <span
+                      className={cn(
+                        "grid size-9 shrink-0 place-items-center rounded-xl",
+                        k.tone === "primary" && "bg-primary/12 text-primary",
+                        k.tone === "success" && "bg-success/15 text-success",
+                        k.tone === "info" && "bg-info/15 text-info",
+                        k.tone === "danger" && "bg-destructive/12 text-destructive",
+                      )}
+                    >
+                      <k.icon className="size-4" aria-hidden />
+                    </span>
+                  </div>
+                  <p className="num mt-3 truncate text-xl font-bold tracking-tight sm:text-2xl">
+                    {k.nilai}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{k.sub}</p>
+                </FloatingCard>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-4 grid gap-4 xl:grid-cols-3">
+            <section className="surface p-5">
+              <h2 className="text-sm font-semibold">Produk terbanyak per klien</h2>
+              <p className="text-xs text-muted-foreground">Enam klien dengan produk terbanyak</p>
+              <div className="mt-4 h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={ekstra.produkTeratas} layout="vertical" margin={{ left: 8, right: 12 }}>
+                    <defs>
+                      <linearGradient id="gKlien" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="var(--chart-2)" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="var(--chart-2)" stopOpacity={1} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 6" horizontal={false} opacity={0.2} />
+                    <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <YAxis
+                      type="category"
+                      dataKey="nama"
+                      width={110}
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v: string) => (v.length > 16 ? `${v.slice(0, 15)}…` : v)}
+                    />
+                    <Tooltip
+                      cursor={{ fill: "transparent" }}
+                      contentStyle={{
+                        borderRadius: 14,
+                        border: "1px solid var(--border)",
+                        background: "var(--card)",
+                      }}
+                    />
+                    <Bar
+                      dataKey="jumlah"
+                      name="Produk"
+                      fill="url(#gKlien)"
+                      radius={[8, 999, 999, 8]}
+                      barSize={16}
+                      isAnimationActive={false}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+
+            <section className="surface p-5">
+              <h2 className="text-sm font-semibold">Komposisi status produk</h2>
+              <p className="text-xs text-muted-foreground">Sebaran katalog produk</p>
+              <div className="mt-4 h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={ekstra.komposisiProduk}
+                      dataKey="jumlah"
+                      nameKey="nama"
+                      innerRadius={54}
+                      outerRadius={88}
+                      paddingAngle={3}
+                      stroke="none"
+                      isAnimationActive={false}
+                    >
+                      {ekstra.komposisiProduk.map((_, i) => (
+                        <Cell key={i} fill={WARNA_PIE[i % WARNA_PIE.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: 14,
+                        border: "1px solid var(--border)",
+                        background: "var(--card)",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                {ekstra.komposisiProduk.map((k, i) => (
+                  <li key={k.nama} className="flex items-center gap-1.5">
+                    <span
+                      className="size-2.5 rounded-full"
+                      style={{ background: WARNA_PIE[i % WARNA_PIE.length] }}
+                      aria-hidden
+                    />
+                    {k.nama} · {angka(k.jumlah)}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="surface p-5">
+              <h2 className="text-sm font-semibold">Fee makelar teratas</h2>
+              <p className="text-xs text-muted-foreground">Total fee per makelar</p>
+              <div className="mt-4 h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={ekstra.feeTeratas} margin={{ left: 4, right: 8, top: 8 }}>
+                    <defs>
+                      <linearGradient id="gFee" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--chart-4)" stopOpacity={1} />
+                        <stop offset="100%" stopColor="var(--chart-4)" stopOpacity={0.3} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 6" vertical={false} opacity={0.2} />
+                    <XAxis dataKey="nama" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis
+                      width={52}
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v: number) => `${angka(v / 1_000_000, 1)}jt`}
+                    />
+                    <Tooltip
+                      cursor={{ fill: "transparent" }}
+                      formatter={(v: number) => rupiah(v)}
+                      contentStyle={{
+                        borderRadius: 14,
+                        border: "1px solid var(--border)",
+                        background: "var(--card)",
+                      }}
+                    />
+                    <Bar
+                      dataKey="nilai"
+                      name="Fee"
+                      fill="url(#gFee)"
+                      radius={[999, 999, 8, 8]}
+                      barSize={22}
+                      isAnimationActive={false}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          </div>
+
+
 
           <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
             <section className="surface p-5">
