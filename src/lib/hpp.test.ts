@@ -104,6 +104,63 @@ describe("HPP mengikuti contoh spreadsheet", () => {
   });
 });
 
+describe("HPP mengikuti template Shenjuu 60 ml", () => {
+  const bahan = [
+    {
+      usage_percentage: 25,
+      normalized_unit_price_snapshot: hargaSatuanDasar(80_000, 18, "liter"),
+      waste_percentage: 0,
+    },
+    {
+      usage_percentage: 2,
+      normalized_unit_price_snapshot: hargaSatuanDasar(18_000, 1, "liter"),
+      waste_percentage: 0,
+    },
+    {
+      usage_percentage: 73,
+      normalized_unit_price_snapshot: hargaSatuanDasar(30_000, 1, "liter"),
+      waste_percentage: 0,
+    },
+  ];
+  const hasil = hitungHpp({
+    bahan,
+    packaging: [
+      { usage_quantity: 1, unit_price_snapshot: 0, capacity_quantity: 1, waste_percentage: 0 },
+      { usage_quantity: 1, unit_price_snapshot: 3000, capacity_quantity: 1, waste_percentage: 0 },
+      { usage_quantity: 0, unit_price_snapshot: 0, capacity_quantity: 1, waste_percentage: 0 },
+    ],
+    formulaBasis: 60,
+    overheadMode: "gabungan",
+    combinedOverheadPercentage: 20,
+    biayaOperasional: [],
+    jumlahUnit: 1000,
+  });
+
+  it("mereplikasi formula, packaging, BTKL + OHP, dan HPP template", () => {
+    expect(hasil.totalFormula).toBeCloseTo(1402.27, 2);
+    expect(hasil.totalPackaging).toBeCloseTo(3000, 2);
+    expect(hasil.subtotal).toBeCloseTo(4402.27, 2);
+    expect(hasil.combinedBtklOhp).toBeCloseTo(880.45, 2);
+    expect(hasil.hppPerUnit).toBeCloseTo(5282.72, 2);
+  });
+
+  it("mereplikasi markup 100%, HNC, dan harga termasuk PPN 11%", () => {
+    const harga = hitungSimulasiMoq(hasil.hppPerUnit, {
+      moq_quantity: 1000,
+      pricing_method: "markup",
+      markup_percentage: 100,
+      target_margin_percentage: 0,
+      tax_percentage: 11,
+      rounding_method: "tanpa",
+    });
+    expect(harga.markupAmount).toBeCloseTo(5282.72, 2);
+    expect(harga.priceBeforeTax).toBeCloseTo(10565.44, 2);
+    expect(harga.priceAfterTax).toBeCloseTo(11727.64, 2);
+    expect(harga.roundedPrice).toBeCloseTo(11727.64, 2);
+    expect(harga.actualMargin).toBeCloseTo(50, 6);
+  });
+});
+
 describe("HPP per unit layak jual", () => {
   it("reject dan penyusutan menaikkan HPP tanpa mengubah biaya batch", () => {
     const dasar: HppInput = {
@@ -161,6 +218,8 @@ describe("simulasi harga MOQ", () => {
     expect(r.priceAfterTax11).toBeCloseTo(11_100, 6);
     expect(r.priceAfterTax12).toBeCloseTo(11_200, 6);
     expect(r.priceAfterTax).toBeCloseTo(11_100, 6);
+    expect(r.roundedPrice).toBeCloseTo(11_100, 6);
+    expect(r.profitPerUnit).toBeCloseTo(0, 6);
   });
 });
 

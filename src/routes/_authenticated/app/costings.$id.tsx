@@ -109,7 +109,7 @@ function headerDariRow(r: DbRow): HeaderDraft {
       String(r["overhead_mode"] ?? "gabungan") === "terpisah" ? "terpisah" : "gabungan",
     combined_overhead_percentage: angkaAtauNull("combined_overhead_percentage"),
     tax_percentage: angkaAtauNull("tax_percentage"),
-    rounding_method: String(r["rounding_method"] ?? "tidak_ada"),
+    rounding_method: String(r["rounding_method"] ?? "tanpa"),
     notes: teks("notes"),
     change_reason: teks("change_reason"),
   };
@@ -192,7 +192,9 @@ function HppDetailPage() {
   const peringatan = validasiKalkulasi({
     totalPersen,
     formulaBasis: Number(header.formula_basis ?? 0),
+    formulaBasisUnit: header.formula_basis_unit,
     netContent: header.net_content,
+    netContentUnit: header.net_content_unit,
     bahan: bahan.map((b) => ({
       material_name_snapshot: b.material_name_snapshot || "(tanpa nama)",
       normalized_unit_price_snapshot: hargaDasarBahan(b),
@@ -239,8 +241,12 @@ function HppDetailPage() {
       [],
       ["Total formula", hasil.totalFormula],
       ["Total packaging", hasil.totalPackaging],
-      ["BTKL", hasil.btkl],
-      ["OHP", hasil.ohp],
+      ...(hasil.combinedBtklOhp > 0
+        ? ([["BTKL + OHP", hasil.combinedBtklOhp]] as (string | number)[][])
+        : ([
+            ["BTKL", hasil.btkl],
+            ["OHP", hasil.ohp],
+          ] as (string | number)[][])),
       ["Biaya tambahan", hasil.biayaTambahan],
       ["HPP per unit", hasil.hppPerUnit],
       ["HPP per batch", hasil.hppBatch],
@@ -248,10 +254,10 @@ function HppDetailPage() {
       [
         "MOQ",
         "Metode",
-        "Harga pra-pajak",
-        "PPN 11%",
-        "PPN 12%",
-        "Harga final",
+        "HNC (sebelum PPN)",
+        "HNC + PPN 11%",
+        "HNC + PPN 12%",
+        "Harga termasuk PPN",
         "Laba/unit",
         "Margin %",
       ],
@@ -272,9 +278,12 @@ function HppDetailPage() {
     );
   };
 
-  const hargaTerendah = simulasi.length
-    ? Math.min(...simulasi.map((s) => s.hasil.roundedPrice))
-    : 0;
+  const hargaAcuan = simulasi.reduce<(typeof simulasi)[number] | null>(
+    (terendah, baris) =>
+      !terendah || baris.hasil.roundedPrice < terendah.hasil.roundedPrice ? baris : terendah,
+    null,
+  );
+  const hargaTerendah = hargaAcuan?.hasil.roundedPrice ?? 0;
   const isLegacy =
     (detail.data?.legacyItems.length ?? 0) > 0 &&
     (detail.data?.bahan.length ?? 0) === 0 &&
@@ -323,6 +332,7 @@ function HppDetailPage() {
                     productId: header.product_id ?? "",
                     harga: {
                       clientPrice: hargaTerendah,
+                      netPrice: hargaAcuan?.hasil.priceBeforeTax ?? hargaTerendah,
                       hpp: hasil.hppPerUnit,
                       companyId: header.company_id,
                     },
@@ -457,7 +467,22 @@ function HppDetailPage() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="basis">Basis formula</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="basis">Basis formula / volume produk</Label>
+                  <button
+                    type="button"
+                    className="text-xs text-primary hover:underline disabled:text-muted-foreground"
+                    disabled={!header.net_content}
+                    onClick={() =>
+                      setH({
+                        formula_basis: header.net_content,
+                        formula_basis_unit: header.net_content_unit,
+                      })
+                    }
+                  >
+                    Samakan isi bersih
+                  </button>
+                </div>
                 <div className="flex gap-2">
                   <DecimalInput
                     id="basis"
@@ -668,7 +693,7 @@ function HppDetailPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="harga-acuan">Harga acuan terendah</Label>
+                  <Label htmlFor="harga-acuan">Harga acuan terendah (termasuk PPN)</Label>
                   <CurrencyInput
                     id="harga-acuan"
                     value={hargaTerendah}
@@ -676,7 +701,8 @@ function HppDetailPage() {
                     onChange={() => {}}
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Harga ini dipakai saat versi diaktifkan ({angka(simulasi.length)} tier MOQ).
+                    Harga final ini dipakai saat versi diaktifkan ({angka(simulasi.length)} tier
+                    MOQ). Margin tetap dihitung dari HNC sebelum PPN.
                   </p>
                 </div>
               </div>

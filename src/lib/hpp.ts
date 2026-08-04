@@ -250,6 +250,8 @@ export type HppResult = {
   totalFormula: number;
   totalPackaging: number;
   subtotal: number;
+  /** Nilai gabungan BTKL + OHP pada mode persentase, sesuai alur template HPP. */
+  combinedBtklOhp: number;
   btkl: number;
   ohp: number;
   biayaTambahan: number;
@@ -274,10 +276,13 @@ export function hitungHpp(input: HppInput): HppResult {
   let btkl = 0;
   let ohp = 0;
   let biayaTambahan = 0;
+  let combinedBtklOhp = 0;
   const rincianOperasional: number[] = [];
 
   if (input.overheadMode === "gabungan") {
     const gabungan = (subtotal * num(input.combinedOverheadPercentage)) / 100;
+    combinedBtklOhp = gabungan;
+    // Tetap masuk ke BTKL untuk kompatibilitas snapshot versi yang sudah ada.
     btkl = gabungan;
   } else {
     let hppBerjalan = subtotal;
@@ -310,6 +315,7 @@ export function hitungHpp(input: HppInput): HppResult {
     totalFormula,
     totalPackaging,
     subtotal,
+    combinedBtklOhp,
     btkl,
     ohp,
     biayaTambahan,
@@ -445,24 +451,29 @@ export function hitungSimulasiMoq(hpp: number, s: SimulasiMoqInput): SimulasiMoq
 
   const taxPct = num(s.tax_percentage);
   const taxAmount = (priceBeforeTax * taxPct) / 100;
-  const roundedPrice = bulatkanHarga(priceBeforeTax, s.rounding_method);
-  const profitPerUnit = roundedPrice - h;
+  const priceAfterTax = priceBeforeTax + taxAmount;
+  // Pada template, harga final adalah HNC setelah ditambah PPN.
+  const roundedPrice = bulatkanHarga(priceAfterTax, s.rounding_method);
+  // PPN bukan laba. Jika harga termasuk PPN dibulatkan, keluarkan kembali pajaknya
+  // sebelum menghitung laba bersih dan margin aktual.
+  const netRevenueAfterRounding = taxPct > 0 ? roundedPrice / (1 + taxPct / 100) : roundedPrice;
+  const profitPerUnit = netRevenueAfterRounding - h;
 
   return {
     hpp: h,
     markupAmount: priceBeforeTax - h,
     priceBeforeTax,
     taxAmount,
-    priceAfterTax: priceBeforeTax + taxAmount,
+    priceAfterTax,
     tax11: priceBeforeTax * 0.11,
     priceAfterTax11: priceBeforeTax * 1.11,
     tax12: priceBeforeTax * 0.12,
     priceAfterTax12: priceBeforeTax * 1.12,
     roundedPrice,
-    selisihPembulatan: roundedPrice - priceBeforeTax,
+    selisihPembulatan: roundedPrice - priceAfterTax,
     profitPerUnit,
     totalProfit: profitPerUnit * num(s.moq_quantity),
-    actualMargin: roundedPrice > 0 ? (profitPerUnit / roundedPrice) * 100 : 0,
+    actualMargin: netRevenueAfterRounding > 0 ? (profitPerUnit / netRevenueAfterRounding) * 100 : 0,
   };
 }
 
@@ -482,7 +493,9 @@ export type Peringatan = { level: "error" | "warning" | "info"; pesan: string };
 export function validasiKalkulasi(opts: {
   totalPersen: number;
   formulaBasis: number;
+  formulaBasisUnit?: string;
   netContent: number | null;
+  netContentUnit?: string;
   bahan: { material_name_snapshot: string; normalized_unit_price_snapshot: number }[];
   packaging: { packaging_name_snapshot: string; unit_price_snapshot: number }[];
   hpp: number;
@@ -510,6 +523,17 @@ export function validasiKalkulasi(opts: {
     out.push({
       level: "warning",
       pesan: "Basis formula lebih kecil daripada isi bersih produk.",
+    });
+  if (
+    opts.netContent !== null &&
+    opts.netContent > 0 &&
+    (Math.abs(opts.formulaBasis - opts.netContent) > TOLERANSI_PERSEN ||
+      opts.formulaBasisUnit !== opts.netContentUnit)
+  )
+    out.push({
+      level: "info",
+      pesan:
+        "Untuk mengikuti template per unit, samakan Basis formula / volume produk dengan Isi bersih.",
     });
   for (const b of opts.bahan) {
     if (num(b.normalized_unit_price_snapshot) <= 0)
