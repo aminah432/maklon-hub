@@ -67,8 +67,8 @@ export function PackagingTable({ packaging, onChange, catalog = [], readOnly = f
         ) : null}
       </div>
 
-      <div className="hidden rounded-2xl border border-border/70 bg-card lg:block">
-        <div className="max-h-[55vh] overflow-auto">
+      <div className="hidden rounded-2xl border border-border/70 bg-card min-[1280px]:block">
+        <div className="max-h-[55vh] overflow-y-auto overflow-x-hidden">
           <table className="w-full min-w-[1180px] border-separate border-spacing-0 text-sm">
             <thead className="sticky top-0 z-20 bg-card">
               <tr className="[&>th]:border-b [&>th]:border-border/70 [&>th]:px-3 [&>th]:py-2 [&>th]:text-left [&>th]:font-medium [&>th]:text-muted-foreground">
@@ -236,7 +236,7 @@ export function PackagingTable({ packaging, onChange, catalog = [], readOnly = f
         </div>
       </div>
 
-      <div className="grid gap-3 lg:hidden">
+      <div className="grid min-w-0 gap-3 min-[1280px]:hidden">
         {packaging.map((p, i) => {
           const c = hitungBarisPackaging(p);
           return (
@@ -268,17 +268,27 @@ export function PackagingTable({ packaging, onChange, catalog = [], readOnly = f
                   />
                 </div>
                 {!readOnly ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Hapus packaging ${i + 1}`}
-                    onClick={() => hapus(p.key)}
-                  >
-                    <Trash2 className="size-4 text-destructive" aria-hidden />
-                  </Button>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Duplikasi packaging ${i + 1}`}
+                      onClick={() => duplikat(p.key)}
+                    >
+                      <Copy className="size-4" aria-hidden />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Hapus packaging ${i + 1}`}
+                      onClick={() => hapus(p.key)}
+                    >
+                      <Trash2 className="size-4 text-destructive" aria-hidden />
+                    </Button>
+                  </div>
                 ) : null}
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-xs text-muted-foreground">Jumlah</Label>
                   <DecimalInput
@@ -309,6 +319,52 @@ export function PackagingTable({ packaging, onChange, catalog = [], readOnly = f
                     value={p.waste_percentage}
                     disabled={readOnly}
                     onChange={(v) => set(p.key, { waste_percentage: v })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Satuan</Label>
+                  <Select
+                    value={p.usage_unit}
+                    disabled={readOnly}
+                    onValueChange={(v) => set(p.key, { usage_unit: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["pcs", "set", ...SATUAN_ISI].map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Kategori</Label>
+                  <Select
+                    value={p.category}
+                    disabled={readOnly}
+                    onValueChange={(v) => set(p.key, { category: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {KATEGORI_PACKAGING.map((k) => (
+                        <SelectItem key={k} value={k}>
+                          {labelStatus(k)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="text-xs text-muted-foreground">Supplier</Label>
+                  <Input
+                    value={p.supplier_name_snapshot}
+                    disabled={readOnly}
+                    onChange={(e) => set(p.key, { supplier_name_snapshot: e.target.value })}
                   />
                 </div>
               </div>
