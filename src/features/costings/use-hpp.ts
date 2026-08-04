@@ -190,6 +190,15 @@ export function useSimpanHpp() {
         .eq("id", p.id);
       if (upd.error) throw new Error(upd.error.message);
 
+      if (h.status === "aktif" && h.product_id) {
+        const gantiVersiLama = await db("costing_versions")
+          .update({ status: "digantikan" })
+          .eq("product_id", h.product_id)
+          .eq("status", "aktif")
+          .neq("id", p.id);
+        if (gantiVersiLama.error) throw new Error(gantiVersiLama.error.message);
+      }
+
       const hapus = async (table: string) => {
         const { error } = await db(table).delete().eq("costing_version_id", p.id);
         if (error) throw new Error(error.message);
