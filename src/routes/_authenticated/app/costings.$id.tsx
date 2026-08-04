@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, Download, GitBranch, Save } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Download, GitBranch, Save } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { StatusBadge } from "@/components/common/status-badge";
@@ -16,12 +16,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CurrencyInput, DecimalInput, PercentageInput, QuantityInput } from "@/components/common/inputs";
+import {
+  CurrencyInput,
+  DecimalInput,
+  PercentageInput,
+  QuantityInput,
+} from "@/components/common/inputs";
 import { FormulaIngredientsTable } from "@/features/costings/formula-table";
 import { PackagingTable } from "@/features/costings/packaging-table";
 import { OperationalCostTable } from "@/features/costings/operational-cost-table";
 import { MoqSimulationTable } from "@/features/costings/moq-table";
 import { HppSummaryCard } from "@/features/costings/hpp-summary";
+import { useHppMasterData } from "@/features/costings/hpp-master-data";
 import {
   bahanDariRow,
   biayaDariRow,
@@ -79,8 +85,7 @@ export const Route = createFileRoute("/_authenticated/app/costings/$id")({
 
 function headerDariRow(r: DbRow): HeaderDraft {
   const teks = (k: string) => (r[k] === null || r[k] === undefined ? "" : String(r[k]));
-  const angkaAtauNull = (k: string) =>
-    r[k] === null || r[k] === undefined ? null : Number(r[k]);
+  const angkaAtauNull = (k: string) => (r[k] === null || r[k] === undefined ? null : Number(r[k]));
   return {
     company_id: String(r["company_id"] ?? ""),
     client_id: r["client_id"] ? String(r["client_id"]) : null,
@@ -100,7 +105,8 @@ function headerDariRow(r: DbRow): HeaderDraft {
     output_unit: String(r["output_unit"] ?? "pcs"),
     estimated_reject_percentage: angkaAtauNull("estimated_reject_percentage"),
     estimated_shrinkage_percentage: angkaAtauNull("estimated_shrinkage_percentage"),
-    overhead_mode: String(r["overhead_mode"] ?? "gabungan") === "terpisah" ? "terpisah" : "gabungan",
+    overhead_mode:
+      String(r["overhead_mode"] ?? "gabungan") === "terpisah" ? "terpisah" : "gabungan",
     combined_overhead_percentage: angkaAtauNull("combined_overhead_percentage"),
     tax_percentage: angkaAtauNull("tax_percentage"),
     rounding_method: String(r["rounding_method"] ?? "tidak_ada"),
@@ -121,9 +127,20 @@ function HppDetailPage() {
   const [biaya, setBiaya] = useState<BiayaDraft[]>([]);
   const [moq, setMoq] = useState<MoqDraft[]>([]);
   const [dimuat, setDimuat] = useState("");
+  const master = useHppMasterData(header?.company_id ?? "");
 
-  const produk = useRows<DbRow>("products", { scopeId, orderBy: "name", asc: true, archived: false });
-  const klien = useRows<DbRow>("clients", { scopeId, orderBy: "owner_name", asc: true, archived: false });
+  const produk = useRows<DbRow>("products", {
+    scopeId,
+    orderBy: "name",
+    asc: true,
+    archived: false,
+  });
+  const klien = useRows<DbRow>("clients", {
+    scopeId,
+    orderBy: "owner_name",
+    asc: true,
+    archived: false,
+  });
   const brand = useRows<DbRow>("brands", { scopeId, orderBy: "name", asc: true, archived: false });
 
   const simpan = useSimpanHpp();
@@ -152,7 +169,8 @@ function HppDetailPage() {
   );
 
   const totalPersen = useMemo(
-    () => totalPersentase(bahan.map((b) => ({ usage_percentage: Number(b.usage_percentage ?? 0) }))),
+    () =>
+      totalPersentase(bahan.map((b) => ({ usage_percentage: Number(b.usage_percentage ?? 0) }))),
     [bahan],
   );
 
@@ -227,7 +245,16 @@ function HppDetailPage() {
       ["HPP per unit", hasil.hppPerUnit],
       ["HPP per batch", hasil.hppBatch],
       [],
-      ["MOQ", "Metode", "Harga pra-pajak", "PPN 11%", "PPN 12%", "Harga final", "Laba/unit", "Margin %"],
+      [
+        "MOQ",
+        "Metode",
+        "Harga pra-pajak",
+        "PPN 11%",
+        "PPN 12%",
+        "Harga final",
+        "Laba/unit",
+        "Margin %",
+      ],
       ...simulasi.map(({ draft: m, hasil: r }) => [
         Number(m.moq_quantity ?? 0),
         m.pricing_method,
@@ -239,12 +266,20 @@ function HppDetailPage() {
         r.actualMargin,
       ]),
     ];
-    unduhCsv(`hpp-${String(namaProduk).toLowerCase().replace(/\s+/g, "-")}-v${header.version_number}`, baris);
+    unduhCsv(
+      `hpp-${String(namaProduk).toLowerCase().replace(/\s+/g, "-")}-v${header.version_number}`,
+      baris,
+    );
   };
 
   const hargaTerendah = simulasi.length
     ? Math.min(...simulasi.map((s) => s.hasil.roundedPrice))
     : 0;
+  const isLegacy =
+    (detail.data?.legacyItems.length ?? 0) > 0 &&
+    (detail.data?.bahan.length ?? 0) === 0 &&
+    (detail.data?.packaging.length ?? 0) === 0 &&
+    (detail.data?.biaya.length ?? 0) === 0;
 
   return (
     <>
@@ -263,7 +298,7 @@ function HppDetailPage() {
             </Button>
             <Button
               variant="outline"
-              disabled={versiBaru.isPending}
+              disabled={versiBaru.isPending || isLegacy}
               onClick={() =>
                 versiBaru.mutate(
                   { sumberId: id, alasan: "Duplikasi dari versi sebelumnya" },
@@ -299,7 +334,7 @@ function HppDetailPage() {
               <CheckCircle2 className="size-4" aria-hidden /> Aktifkan
             </Button>
             <Button
-              disabled={simpan.isPending}
+              disabled={simpan.isPending || isLegacy}
               onClick={() => simpan.mutate({ id, header, bahan, packaging, biaya, moq })}
             >
               <Save className="size-4" aria-hidden /> Simpan
@@ -310,6 +345,19 @@ function HppDetailPage() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-6">
+          {isLegacy ? (
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+              <div>
+                <p className="font-medium">Versi ini dibuat dengan format HPP lama.</p>
+                <p className="mt-1">
+                  {angka(detail.data?.legacyItems.length ?? 0)} komponen biaya asli tetap tersimpan
+                  dan versi ini dibuat hanya-baca agar tidak tertimpa. Buat versi lengkap baru dari
+                  daftar HPP untuk memakai formula, packaging, BTKL/OHP, dan MOQ.
+                </p>
+              </div>
+            </div>
+          ) : null}
           <section className="rounded-2xl border border-border/70 bg-card p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-sm font-medium text-muted-foreground">Identitas kalkulasi</h2>
@@ -527,11 +575,18 @@ function HppDetailPage() {
                 bahan={bahan}
                 onChange={setBahan}
                 formulaBasis={Number(header.formula_basis ?? 0)}
+                catalog={master.materials}
+                readOnly={isLegacy}
               />
             </TabsContent>
 
             <TabsContent value="packaging" className="mt-4">
-              <PackagingTable packaging={packaging} onChange={setPackaging} />
+              <PackagingTable
+                packaging={packaging}
+                onChange={setPackaging}
+                catalog={master.packaging}
+                readOnly={isLegacy}
+              />
             </TabsContent>
 
             <TabsContent value="operasional" className="mt-4 space-y-4">
@@ -614,7 +669,12 @@ function HppDetailPage() {
                 </div>
                 <div>
                   <Label htmlFor="harga-acuan">Harga acuan terendah</Label>
-                  <CurrencyInput id="harga-acuan" value={hargaTerendah} disabled onChange={() => {}} />
+                  <CurrencyInput
+                    id="harga-acuan"
+                    value={hargaTerendah}
+                    disabled
+                    onChange={() => {}}
+                  />
                   <p className="mt-1 text-xs text-muted-foreground">
                     Harga ini dipakai saat versi diaktifkan ({angka(simulasi.length)} tier MOQ).
                   </p>

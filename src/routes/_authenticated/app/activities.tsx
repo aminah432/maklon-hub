@@ -25,7 +25,8 @@ export const Route = createFileRoute("/_authenticated/app/activities")({
       { title: "Aktivitas — Maklon Control Center" },
       {
         name: "description",
-        content: "Jejak audit perubahan data maklon: siapa mengubah apa dan kapan perubahan terjadi.",
+        content:
+          "Jejak audit perubahan data maklon: siapa mengubah apa dan kapan perubahan terjadi.",
       },
       { property: "og:title", content: "Aktivitas — Maklon Control Center" },
       { property: "og:description", content: "Jejak audit aktivitas pengguna." },
@@ -43,8 +44,16 @@ function ActivitiesPage() {
   const setSearch = (patch: Partial<S>) =>
     void navigate({ search: (prev: S) => ({ ...prev, ...patch }), replace: true });
 
-  const logs = useRows<DbRow>("activity_logs", { scopeId, limit: 300 });
-  const riwayat = useRows<DbRow>("order_status_history", { scopeId, limit: 300 });
+  const logs = useRows<DbRow>("activity_logs", {
+    scopeId,
+    limit: 300,
+    refetchInterval: 30_000,
+  });
+  const riwayat = useRows<DbRow>("order_status_history", {
+    scopeId,
+    limit: 300,
+    refetchInterval: 30_000,
+  });
 
   const gabungan = useMemo(() => {
     const a = (logs.data ?? []).map((l) => ({
@@ -131,9 +140,7 @@ function ActivitiesPage() {
                     <CompanyBadge code={c?.code ?? null} name={c?.name ?? null} />
                   </div>
                 </div>
-                {g.detail ? (
-                  <p className="mt-1 text-sm text-muted-foreground">{g.detail}</p>
-                ) : null}
+                {g.detail ? <p className="mt-1 text-sm text-muted-foreground">{g.detail}</p> : null}
                 <p className="mt-1 text-xs text-muted-foreground">{tanggal(g.waktu, true)}</p>
               </li>
             );

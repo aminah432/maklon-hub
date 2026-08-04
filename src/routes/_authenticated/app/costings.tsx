@@ -53,7 +53,6 @@ function CostingsPage() {
     void navigate({ search: (prev: S) => ({ ...prev, ...patch }), replace: true });
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<DbRow | null>(null);
   const [priceFor, setPriceFor] = useState<DbRow | null>(null);
 
   const versions = useRows<DbRow>("costing_versions", { scopeId });
@@ -69,6 +68,8 @@ function CostingsPage() {
     name: String(p["name"]),
     sku: String(p["sku"]),
     company_id: String(p["company_id"]),
+    client_id: p["client_id"] ? String(p["client_id"]) : null,
+    brand_id: p["brand_id"] ? String(p["brand_id"]) : null,
   }));
 
   const namaProduk = (id: unknown) =>
@@ -157,7 +158,11 @@ function CostingsPage() {
       header: "HPP / unit",
       render: (r) => <span className="font-semibold">{rupiah(Number(r["unit_hpp"]), true)}</span>,
     },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={String(r["status"])} /> },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <StatusBadge status={String(r["status"])} />,
+    },
     {
       key: "tanggal",
       header: "Dibuat",
@@ -177,7 +182,6 @@ function CostingsPage() {
         actions={
           <Button
             onClick={() => {
-              setEditing(null);
               setFormOpen(true);
             }}
           >
@@ -228,7 +232,10 @@ function CostingsPage() {
           }
           action={
             adaFilter ? (
-              <Button variant="outline" onClick={() => setSearch({ q: "", status: "semua", produk: "semua" })}>
+              <Button
+                variant="outline"
+                onClick={() => setSearch({ q: "", status: "semua", produk: "semua" })}
+              >
                 Reset filter
               </Button>
             ) : (
@@ -268,14 +275,13 @@ function CostingsPage() {
             </div>
           )}
         />
-
       )}
 
       <CostingDialog
         open={formOpen}
         onOpenChange={setFormOpen}
         products={productOptions}
-        editing={editing}
+        onCreated={(id) => void navigate({ to: "/app/costings/$id", params: { id } })}
       />
 
       <RecordFormDialog
@@ -306,9 +312,7 @@ function CostingsPage() {
           { name: "notes", label: "Catatan", type: "textarea" },
         ]}
         initial={{ pricing_method: "markup", markup_percentage: 30 }}
-        onSubmit={(values) =>
-          simpanHarga.mutate(values, { onSuccess: () => setPriceFor(null) })
-        }
+        onSubmit={(values) => simpanHarga.mutate(values, { onSuccess: () => setPriceFor(null) })}
       />
     </>
   );

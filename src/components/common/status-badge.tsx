@@ -2,14 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { STATUS_TONE, type Tone } from "@/lib/constants";
 import { labelStatus } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  CircleDashed,
-  CircleDot,
-  Clock,
-  XCircle,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleDashed, CircleDot, Clock, XCircle } from "lucide-react";
 
 const TONE_CLASS: Record<Tone, string> = {
   netral: "bg-muted text-muted-foreground border-border",
@@ -44,7 +37,11 @@ export function StatusBadge({
   return (
     <Badge
       variant="outline"
-      className={cn("gap-1 rounded-full border px-2.5 py-0.5 font-medium", TONE_CLASS[resolved], className)}
+      className={cn(
+        "gap-1 rounded-full border px-2.5 py-0.5 font-medium",
+        TONE_CLASS[resolved],
+        className,
+      )}
     >
       <Icon className="size-3.5 shrink-0" aria-hidden />
       <span className="truncate">{labelStatus(status)}</span>
@@ -53,8 +50,7 @@ export function StatusBadge({
 }
 
 export function PriorityBadge({ priority }: { priority: string | null | undefined }) {
-  const tone: Tone =
-    priority === "tinggi" ? "bahaya" : priority === "rendah" ? "netral" : "info";
+  const tone: Tone = priority === "tinggi" ? "bahaya" : priority === "rendah" ? "netral" : "info";
   return <StatusBadge status={priority ?? "normal"} tone={tone} />;
 }
 

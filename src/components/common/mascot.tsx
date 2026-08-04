@@ -42,13 +42,7 @@ export function MascotLogo({
 }
 
 /** Maskot utuh untuk ilustrasi (login, empty state, sambutan dasbor). */
-export function Mascot({
-  className,
-  float = true,
-}: {
-  className?: string;
-  float?: boolean;
-}) {
+export function Mascot({ className, float = true }: { className?: string; float?: boolean }) {
   return (
     <img
       src={maskot}
@@ -65,6 +59,5 @@ export function Mascot({
         className,
       )}
     />
-
   );
 }

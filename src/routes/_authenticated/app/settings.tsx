@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck, Users } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { LoadingSkeleton, ErrorState } from "@/components/common/states";
 import { RecordFormDialog, type FormValues } from "@/components/common/record-form";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company-context";
 import { useAuth } from "@/hooks/use-auth";
-import { useRows, useSaveRow, type DbRow } from "@/lib/db";
+import { db, useAction, useRows, useSaveRow, type DbRow } from "@/lib/db";
 import { persen, rupiah } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/app/settings")({
@@ -21,7 +21,8 @@ export const Route = createFileRoute("/_authenticated/app/settings")({
       { title: "Pengaturan — Maklon Control Center" },
       {
         name: "description",
-        content: "Atur profil perusahaan maklon, rekening, margin minimum, dan catatan dokumen standar.",
+        content:
+          "Atur profil perusahaan maklon, rekening, margin minimum, dan catatan dokumen standar.",
       },
       { property: "og:title", content: "Pengaturan — Maklon Control Center" },
       { property: "og:description", content: "Konfigurasi perusahaan dan preferensi dokumen." },
@@ -77,6 +78,8 @@ function SettingsPage() {
         </Button>
       </section>
 
+      <CompanyAccessManager companies={companies.data ?? []} userId={user?.id ?? ""} />
+
       {companies.isLoading ? (
         <LoadingSkeleton rows={3} />
       ) : companies.isError ? (
@@ -84,7 +87,10 @@ function SettingsPage() {
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
           {daftar.map((c) => (
-            <article key={String(c["id"])} className="rounded-2xl border border-border/70 bg-card p-5">
+            <article
+              key={String(c["id"])}
+              className="rounded-2xl border border-border/70 bg-card p-5"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-xs font-bold text-primary-foreground">
@@ -224,8 +230,119 @@ function SettingsPage() {
       <CategoryManagerDialog open={kategori} onOpenChange={setKategori} />
 
       <p className="mt-6 text-xs text-muted-foreground">
-        Nilai nominal ditampilkan dalam Rupiah (contoh: {rupiah(1500000)}) dengan zona waktu Asia/Jakarta.
+        Nilai nominal ditampilkan dalam Rupiah (contoh: {rupiah(1500000)}) dengan zona waktu
+        Asia/Jakarta.
       </p>
     </>
+  );
+}
+
+function CompanyAccessManager({ companies, userId }: { companies: DbRow[]; userId: string }) {
+  const profiles = useRows<DbRow>("profiles", { orderBy: "email", asc: true });
+  const roles = useRows<DbRow>("user_roles", { orderBy: "created_at", asc: true });
+  const accesses = useRows<DbRow>("user_company_access", {
+    orderBy: "created_at",
+    asc: true,
+  });
+  const isSuperAdmin = (roles.data ?? []).some(
+    (role) => String(role["user_id"]) === userId && role["role"] === "super_admin",
+  );
+  const toggle = useAction(
+    async ({
+      profileId,
+      companyId,
+      accessId,
+    }: {
+      profileId: string;
+      companyId: string;
+      accessId?: string;
+    }) => {
+      if (accessId) {
+        const { error } = await db("user_company_access").delete().eq("id", accessId);
+        if (error) throw new Error(error.message);
+      } else {
+        const { error } = await db("user_company_access").insert({
+          user_id: profileId,
+          company_id: companyId,
+          role: "admin",
+        });
+        if (error) throw new Error(error.message);
+      }
+    },
+    { invalidate: ["user_company_access", "companies"], success: "Akses perusahaan diperbarui" },
+  );
+
+  if (!isSuperAdmin) return null;
+
+  return (
+    <section className="mb-6 rounded-2xl border border-border/70 bg-card p-5">
+      <div className="flex items-start gap-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+          <Users className="size-5" aria-hidden />
+        </span>
+        <div>
+          <h2 className="text-sm font-semibold">Akses pengguna per perusahaan</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Aktifkan hanya perusahaan yang boleh diakses akun tersebut. Perubahan ini juga membatasi
+            dokumen pada Storage.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 divide-y divide-border/60 rounded-2xl border border-border/70">
+        {(profiles.data ?? []).map((profile) => {
+          const profileId = String(profile["id"]);
+          const profileIsSuper = (roles.data ?? []).some(
+            (role) => String(role["user_id"]) === profileId && role["role"] === "super_admin",
+          );
+          return (
+            <div key={profileId} className="grid gap-3 p-4 lg:grid-cols-[minmax(0,1fr)_2fr]">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">
+                  {String(profile["full_name"] ?? profile["email"] ?? "Pengguna")}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {String(profile["email"] ?? "-")}
+                </p>
+                {profileIsSuper ? (
+                  <span className="mt-2 inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                    <ShieldCheck className="size-3" aria-hidden /> Super admin · seluruh perusahaan
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {companies.map((company) => {
+                  const access = (accesses.data ?? []).find(
+                    (row) =>
+                      String(row["user_id"]) === profileId &&
+                      String(row["company_id"]) === String(company["id"]),
+                  );
+                  const active = profileIsSuper || Boolean(access);
+                  return (
+                    <Button
+                      key={String(company["id"])}
+                      type="button"
+                      size="sm"
+                      variant={active ? "default" : "outline"}
+                      disabled={profileIsSuper || toggle.isPending}
+                      aria-pressed={active}
+                      onClick={() =>
+                        toggle.mutate({
+                          profileId,
+                          companyId: String(company["id"]),
+                          ...(access ? { accessId: String(access["id"]) } : {}),
+                        })
+                      }
+                    >
+                      {String(company["code"] ?? company["name"])}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

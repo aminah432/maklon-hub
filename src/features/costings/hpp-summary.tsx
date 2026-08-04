@@ -66,6 +66,9 @@ export function HppSummaryCard({
           <Baris label="BTKL" value={rupiah(hasil.btkl, true)} />
           <Baris label="OHP" value={rupiah(hasil.ohp, true)} />
           <Baris label="Biaya tambahan" value={rupiah(hasil.biayaTambahan, true)} />
+          {hasil.lossAdjustment > 0 ? (
+            <Baris label="Dampak reject & penyusutan" value={rupiah(hasil.lossAdjustment, true)} />
+          ) : null}
           <Baris label="HPP per unit" value={rupiah(hasil.hppPerUnit, true)} strong />
           <Baris label="HPP per batch" value={rupiah(hasil.hppBatch)} />
         </div>
@@ -80,7 +83,7 @@ export function HppSummaryCard({
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">Layak jual</dt>
-            <dd className="num font-medium">{angka(layakJual)}</dd>
+            <dd className="num font-medium">{angka(hasil.sellableUnits || layakJual)}</dd>
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">Reject</dt>

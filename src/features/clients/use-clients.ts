@@ -28,10 +28,7 @@ export function useClients(scopeId: string | null, archived: boolean) {
   return useQuery({
     queryKey: ["clients", scopeId, archived],
     queryFn: async () => {
-      let q = supabase
-        .from("clients")
-        .select("*")
-        .order("created_at", { ascending: false });
+      let q = supabase.from("clients").select("*").order("created_at", { ascending: false });
       q = archived ? q.not("archived_at", "is", null) : q.is("archived_at", null);
       if (scopeId) q = q.eq("company_id", scopeId);
       const { data, error } = await q;

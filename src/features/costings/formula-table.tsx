@@ -22,13 +22,8 @@ import {
   totalPersentase,
 } from "@/lib/hpp";
 import { cn } from "@/lib/utils";
-import {
-  bahanBaru,
-  hargaDasarBahan,
-  hitungBarisBahan,
-  kunci,
-  type BahanDraft,
-} from "./hpp-types";
+import { bahanBaru, hargaDasarBahan, hitungBarisBahan, kunci, type BahanDraft } from "./hpp-types";
+import type { MaterialCatalogItem } from "./hpp-master-data";
 
 export function FormulaPercentageIndicator({ total }: { total: number }) {
   const st = statusFormula(total);
@@ -63,6 +58,7 @@ type Props = {
   bahan: BahanDraft[];
   onChange: (rows: BahanDraft[]) => void;
   formulaBasis: number;
+  catalog?: MaterialCatalogItem[];
   readOnly?: boolean;
 };
 
@@ -70,10 +66,12 @@ export function FormulaIngredientsTable({
   bahan,
   onChange,
   formulaBasis,
+  catalog = [],
   readOnly = false,
 }: Props) {
   const total = useMemo(
-    () => totalPersentase(bahan.map((b) => ({ usage_percentage: Number(b.usage_percentage ?? 0) }))),
+    () =>
+      totalPersentase(bahan.map((b) => ({ usage_percentage: Number(b.usage_percentage ?? 0) }))),
     [bahan],
   );
   const totalBiaya = useMemo(
@@ -84,6 +82,23 @@ export function FormulaIngredientsTable({
   const set = (key: string, patch: Partial<BahanDraft>) =>
     onChange(bahan.map((b) => (b.key === key ? { ...b, ...patch } : b)));
   const hapus = (key: string) => onChange(bahan.filter((b) => b.key !== key));
+  const pilihMaster = (key: string, id: string) => {
+    const item = catalog.find((c) => c.id === id);
+    if (!item) return;
+    set(key, {
+      material_id: item.id,
+      supplier_price_id: item.priceId,
+      material_name_snapshot: item.name,
+      category: item.category,
+      supplier_name_snapshot: item.supplierName,
+      purchase_price_snapshot: item.purchasePrice,
+      purchase_quantity_snapshot: item.purchaseQuantity,
+      purchase_unit_snapshot: item.purchaseUnit,
+      normalized_unit_price_snapshot: item.normalizedUnitPrice,
+      required_unit: item.defaultUnit,
+      override: false,
+    });
+  };
   const duplikat = (key: string) => {
     const idx = bahan.findIndex((b) => b.key === key);
     if (idx < 0) return;
@@ -164,6 +179,26 @@ export function FormulaIngredientsTable({
                       </div>
                     </td>
                     <td className="sticky left-14 z-10 bg-inherit">
+                      {catalog.length > 0 && !readOnly ? (
+                        <Select
+                          value={b.material_id ?? ""}
+                          onValueChange={(v) => pilihMaster(b.key, v)}
+                        >
+                          <SelectTrigger
+                            className="mb-1"
+                            aria-label={`Pilih master bahan baris ${i + 1}`}
+                          >
+                            <SelectValue placeholder="Pilih dari master" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {catalog.map((item) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : null}
                       <Input
                         value={b.material_name_snapshot}
                         disabled={readOnly}
@@ -366,6 +401,23 @@ export function FormulaIngredientsTable({
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <Label className="text-xs text-muted-foreground">Nama bahan {i + 1}</Label>
+                  {catalog.length > 0 && !readOnly ? (
+                    <Select
+                      value={b.material_id ?? ""}
+                      onValueChange={(v) => pilihMaster(b.key, v)}
+                    >
+                      <SelectTrigger className="mb-1">
+                        <SelectValue placeholder="Pilih dari master bahan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {catalog.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : null}
                   <Input
                     value={b.material_name_snapshot}
                     disabled={readOnly}
