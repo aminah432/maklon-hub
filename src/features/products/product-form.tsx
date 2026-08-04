@@ -4,6 +4,8 @@ import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { CurrencyInput } from "@/components/common/inputs";
+import { SearchableSelect } from "@/components/common/searchable-select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,13 +24,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +62,7 @@ export const productSchema = z.object({
   description: opsional(1000),
   net_content: angkaOpsional,
   unit: z.string().trim().min(1, { message: "Satuan wajib diisi" }).max(20),
+  manual_hpp: z.number().min(0, { message: "HPP tidak boleh negatif" }).optional(),
   moq: z
     .number({ message: "MOQ wajib diisi" })
     .int({ message: "MOQ harus bilangan bulat" })
@@ -109,6 +105,7 @@ export function ProductFormDialog({
       variant: "",
       description: "",
       unit: "pcs",
+      manual_hpp: 0,
       moq: 100,
       packaging_type: "",
       status: "draft",
@@ -140,6 +137,7 @@ export function ProductFormDialog({
       description: product?.description ?? "",
       net_content: numOrEmpty(product?.net_content),
       unit: product?.unit ?? "pcs",
+      manual_hpp: Number(product?.specifications?.["manual_hpp"] ?? 0),
       moq: product?.moq ?? 100,
       standard_batch_quantity: numOrEmpty(product?.standard_batch_quantity),
       shelf_life_months: numOrEmpty(product?.shelf_life_months),
@@ -156,7 +154,9 @@ export function ProductFormDialog({
   const simpan = useMutation({
     mutationFn: async (values: ProductFormValues) => {
       const specifications = Object.fromEntries(
-        Object.entries(values.specifications ?? {}).filter(([, v]) => v.trim() !== ""),
+        Object.entries(values.specifications ?? {}).filter(
+          ([key, v]) => key !== "manual_hpp" && v.trim() !== "",
+        ),
       );
       const payload = {
         company_id: values.company_id,
@@ -175,7 +175,10 @@ export function ProductFormDialog({
         packaging_type: kosong(values.packaging_type),
         status: values.status,
         notes: kosong(values.notes),
-        specifications,
+        specifications: {
+          ...specifications,
+          manual_hpp: values.manual_hpp ?? 0,
+        },
       };
 
       if (product) {
@@ -228,30 +231,26 @@ export function ProductFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Perusahaan</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={(v) => {
-                          field.onChange(v);
-                          form.setValue("client_id", "");
-                          form.setValue("brand_id", "");
-                          form.setValue("category_id", "");
-                          form.setValue("specifications", {});
-                        }}
-                        disabled={Boolean(product)}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih perusahaan" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {companies.map((c) => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.code} — {c.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SearchableSelect
+                          value={field.value}
+                          onValueChange={(v) => {
+                            field.onChange(v);
+                            form.setValue("client_id", "");
+                            form.setValue("brand_id", "");
+                            form.setValue("category_id", "");
+                            form.setValue("specifications", {});
+                          }}
+                          disabled={Boolean(product)}
+                          options={companies.map((c) => ({
+                            value: c.id,
+                            label: `${c.code} — ${c.name}`,
+                            keywords: `${c.code} ${c.name}`,
+                          }))}
+                          placeholder="Pilih perusahaan"
+                          searchPlaceholder="Cari perusahaan..."
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -263,20 +262,18 @@ export function ProductFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {PRODUCT_STATUSES.map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {labelStatus(s)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SearchableSelect
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          options={PRODUCT_STATUSES.map((status) => ({
+                            value: status,
+                            label: labelStatus(status),
+                          }))}
+                          placeholder="Pilih status"
+                          searchPlaceholder="Cari status..."
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -302,27 +299,24 @@ export function ProductFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Klien</FormLabel>
-                      <Select
-                        value={field.value || "none"}
-                        onValueChange={(v) => {
-                          field.onChange(v === "none" ? "" : v);
-                          form.setValue("brand_id", "");
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih klien" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tanpa klien</SelectItem>
-                          {clients.map((c) => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SearchableSelect
+                          value={field.value || "none"}
+                          onValueChange={(v) => {
+                            field.onChange(v === "none" ? "" : v);
+                            form.setValue("brand_id", "");
+                          }}
+                          options={[
+                            { value: "none", label: "Tanpa klien" },
+                            ...clients.map((client) => ({
+                              value: client.id,
+                              label: client.name,
+                            })),
+                          ]}
+                          placeholder="Pilih klien"
+                          searchPlaceholder="Cari klien..."
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -334,24 +328,21 @@ export function ProductFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Brand</FormLabel>
-                      <Select
-                        value={field.value || "none"}
-                        onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih brand" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tanpa brand</SelectItem>
-                          {brandOptions.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>
-                              {b.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SearchableSelect
+                          value={field.value || "none"}
+                          onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
+                          options={[
+                            { value: "none", label: "Tanpa brand" },
+                            ...brandOptions.map((brand) => ({
+                              value: brand.id,
+                              label: brand.name,
+                            })),
+                          ]}
+                          placeholder="Pilih brand"
+                          searchPlaceholder="Cari brand..."
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -363,26 +354,23 @@ export function ProductFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Kategori</FormLabel>
-                      <Select
-                        value={field.value || "none"}
-                        onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih kategori" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tanpa kategori</SelectItem>
-                          {categories
-                            .filter((c) => c.is_active || c.id === field.value)
-                            .map((c) => (
-                              <SelectItem key={c.id} value={c.id}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SearchableSelect
+                          value={field.value || "none"}
+                          onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
+                          options={[
+                            { value: "none", label: "Tanpa kategori" },
+                            ...categories
+                              .filter((c) => c.is_active || c.id === field.value)
+                              .map((category) => ({
+                                value: category.id,
+                                label: category.name,
+                              })),
+                          ]}
+                          placeholder="Pilih kategori"
+                          searchPlaceholder="Cari kategori..."
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -463,6 +451,26 @@ export function ProductFormDialog({
                       <FormControl>
                         <Input {...field} placeholder="pcs / botol / sachet" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="manual_hpp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>HPP manual</FormLabel>
+                      <CurrencyInput
+                        value={field.value ?? null}
+                        onChange={(value) => field.onChange(value ?? 0)}
+                        aria-invalid={Boolean(form.formState.errors.manual_hpp)}
+                        placeholder="0"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Dipakai sebagai HPP Pesanan; isi 0 untuk memakai HPP aktif.
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
