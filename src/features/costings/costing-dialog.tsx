@@ -46,6 +46,7 @@ import {
   OPSI_PEMBULATAN,
   SATUAN_ISI,
   SATUAN_PRODUK,
+  bolehDiaktifkan,
   estimasiHasil,
   totalPersentase,
 } from "@/lib/hpp";
@@ -164,9 +165,13 @@ export function CostingDialog({
       return;
     }
     try {
-      const id = createdId || (await buat.mutateAsync(header));
+      const headerTersimpan = {
+        ...header,
+        status: bolehDiaktifkan(formulaTotal, hasil.hppPerUnit) ? "aktif" : "draft",
+      };
+      const id = createdId || (await buat.mutateAsync(headerTersimpan));
       if (!createdId) setCreatedId(id);
-      await simpan.mutateAsync({ id, header, bahan, packaging, biaya, moq });
+      await simpan.mutateAsync({ id, header: headerTersimpan, bahan, packaging, biaya, moq });
       onOpenChange(false);
       onCreated?.(id);
     } catch {
