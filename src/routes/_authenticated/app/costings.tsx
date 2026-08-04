@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { Calculator, CheckCircle2, Pencil, Plus, Tag } from "lucide-react";
@@ -290,19 +290,16 @@ function CostingsPage() {
               >
                 <Tag className="size-4" aria-hidden />
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                title="Buka editor kalkulasi"
-                aria-label="Buka editor kalkulasi"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  void navigate({ to: "/app/costings/$id", params: { id: String(r["id"]) } });
-                }}
-              >
-                <Pencil className="size-4" aria-hidden />
+              <Button variant="ghost" size="icon" asChild>
+                <Link
+                  to="/app/costings/$id"
+                  params={{ id: String(r["id"]) }}
+                  title="Buka editor kalkulasi"
+                  aria-label="Buka editor kalkulasi"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <Pencil className="size-4" aria-hidden />
+                </Link>
               </Button>
             </div>
           )}
