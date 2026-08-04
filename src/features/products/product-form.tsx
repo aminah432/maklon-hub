@@ -43,7 +43,12 @@ import {
 } from "@/features/products/use-products";
 
 const opsional = (max: number) =>
-  z.string().trim().max(max, { message: `Maksimal ${max} karakter` }).optional().or(z.literal(""));
+  z
+    .string()
+    .trim()
+    .max(max, { message: `Maksimal ${max} karakter` })
+    .optional()
+    .or(z.literal(""));
 
 const angkaOpsional = z.number().optional();
 
@@ -77,7 +82,8 @@ export const productSchema = z.object({
 export type ProductFormValues = z.infer<typeof productSchema>;
 
 const kosong = (v: string | undefined) => (v && v.trim() !== "" ? v.trim() : null);
-const numOrEmpty = (v: number | null | undefined) => (v === null || v === undefined ? undefined : v);
+const numOrEmpty = (v: number | null | undefined) =>
+  v === null || v === undefined ? undefined : v;
 
 export function ProductFormDialog({
   open,
@@ -114,10 +120,7 @@ export function ProductFormDialog({
   const companyId = form.watch("company_id");
   const clientId = form.watch("client_id");
   const perusahaan = companyById(companyId);
-  const specFields = useMemo(
-    () => SPEC_FIELDS[perusahaan?.code ?? ""] ?? [],
-    [perusahaan?.code],
-  );
+  const specFields = useMemo(() => SPEC_FIELDS[perusahaan?.code ?? ""] ?? [], [perusahaan?.code]);
 
   const { data: categories = [] } = useProductCategories(companyId || null);
   const { data: clients = [] } = useClientOptions(companyId || null);
@@ -195,8 +198,7 @@ export function ProductFormDialog({
       toast.success(product ? "Produk diperbarui" : "Produk baru ditambahkan");
       onOpenChange(false);
     },
-    onError: (e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Gagal menyimpan produk"),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Gagal menyimpan produk"),
   });
 
   return (
@@ -439,7 +441,9 @@ export function ProductFormDialog({
                           inputMode="decimal"
                           value={field.value ?? ""}
                           onChange={(e) =>
-                            field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
+                            field.onChange(
+                              e.target.value === "" ? undefined : Number(e.target.value),
+                            )
                           }
                           className="num text-right"
                           placeholder="20"
@@ -475,7 +479,9 @@ export function ProductFormDialog({
                           inputMode="numeric"
                           value={field.value ?? ""}
                           onChange={(e) =>
-                            field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
+                            field.onChange(
+                              e.target.value === "" ? undefined : Number(e.target.value),
+                            )
                           }
                           className="num text-right"
                         />
@@ -496,7 +502,9 @@ export function ProductFormDialog({
                           inputMode="numeric"
                           value={field.value ?? ""}
                           onChange={(e) =>
-                            field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
+                            field.onChange(
+                              e.target.value === "" ? undefined : Number(e.target.value),
+                            )
                           }
                           className="num text-right"
                         />
@@ -517,7 +525,9 @@ export function ProductFormDialog({
                           inputMode="numeric"
                           value={field.value ?? ""}
                           onChange={(e) =>
-                            field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
+                            field.onChange(
+                              e.target.value === "" ? undefined : Number(e.target.value),
+                            )
                           }
                           className="num text-right"
                         />

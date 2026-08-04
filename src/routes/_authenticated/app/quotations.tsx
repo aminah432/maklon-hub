@@ -125,10 +125,15 @@ function QuotationsPage() {
         const ins = await db("order_items").insert(rows);
         if (ins.error) throw new Error(ins.error.message);
       }
-      const upd = await db("quotations").update({ status: "dikonversi" }).eq("id", String(row["id"]));
+      const upd = await db("quotations")
+        .update({ status: "dikonversi" })
+        .eq("id", String(row["id"]));
       if (upd.error) throw new Error(upd.error.message);
     },
-    { invalidate: ["quotations", "orders", "order_items"], success: "Penawaran dikonversi menjadi pesanan" },
+    {
+      invalidate: ["quotations", "orders", "order_items"],
+      success: "Penawaran dikonversi menjadi pesanan",
+    },
   );
 
   const rows = useMemo(() => {
@@ -165,7 +170,11 @@ function QuotationsPage() {
         return <CompanyBadge code={c?.code ?? null} name={c?.name ?? null} />;
       },
     },
-    { key: "tanggal", header: "Tanggal", render: (r) => tanggalPendek(String(r["quotation_date"])) },
+    {
+      key: "tanggal",
+      header: "Tanggal",
+      render: (r) => tanggalPendek(String(r["quotation_date"])),
+    },
     {
       key: "berlaku",
       header: "Berlaku sampai",
@@ -177,7 +186,11 @@ function QuotationsPage() {
       header: "Total",
       render: (r) => <span className="font-semibold">{rupiah(Number(r["grand_total"]))}</span>,
     },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={String(r["status"])} /> },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <StatusBadge status={String(r["status"])} />,
+    },
   ];
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");

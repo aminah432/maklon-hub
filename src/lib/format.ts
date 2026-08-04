@@ -36,7 +36,10 @@ export function formatNumberInput(value: number | null | undefined): string {
 }
 
 export function parseNumberInput(raw: string): number | null {
-  const cleaned = raw.replace(/[^\d,-]/g, "").replace(/\./g, "").replace(",", ".");
+  const cleaned = raw
+    .replace(/[^\d,-]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
   if (cleaned === "" || cleaned === "-") return null;
   const n = Number(cleaned);
   return Number.isFinite(n) ? n : null;

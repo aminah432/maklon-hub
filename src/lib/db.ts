@@ -49,6 +49,7 @@ export type RowsParams = {
   eq?: Record<string, string | number | boolean | null | undefined>;
   limit?: number;
   enabled?: boolean;
+  refetchInterval?: number;
 };
 
 export function useRows<T = DbRow>(table: string, params: RowsParams = {}) {
@@ -61,11 +62,13 @@ export function useRows<T = DbRow>(table: string, params: RowsParams = {}) {
     eq = {},
     limit,
     enabled = true,
+    refetchInterval,
   } = params;
 
   return useQuery({
     queryKey: [table, scopeId, select, orderBy, asc, archived, eq, limit],
     enabled,
+    ...(refetchInterval === undefined ? {} : { refetchInterval }),
     queryFn: async () => {
       let q = db(table).select(select).order(orderBy, { ascending: asc });
       if (scopeId) q = q.eq("company_id", scopeId);
@@ -152,8 +155,8 @@ export function useArchiveRow(table: string, opts: { invalidate?: string[]; labe
 }
 
 /** Mutasi bebas dengan invalidasi cache dan notifikasi. */
-export function useAction<TVars>(
-  fn: (vars: TVars) => Promise<unknown>,
+export function useAction<TVars, TResult = unknown>(
+  fn: (vars: TVars) => Promise<TResult>,
   opts: { invalidate?: string[]; success?: string } = {},
 ) {
   const qc = useQueryClient();

@@ -44,7 +44,8 @@ export const Route = createFileRoute("/_authenticated/app/orders")({
       { title: "Pesanan — Maklon Control Center" },
       {
         name: "description",
-        content: "Pantau pesanan maklon dari persetujuan penawaran sampai pengiriman dan pelunasan.",
+        content:
+          "Pantau pesanan maklon dari persetujuan penawaran sampai pengiriman dan pelunasan.",
       },
       { property: "og:title", content: "Pesanan — Maklon Control Center" },
       { property: "og:description", content: "Pantau pesanan maklon end-to-end." },
@@ -152,8 +153,16 @@ function OrdersPage() {
         </div>
       ),
     },
-    { key: "prioritas", header: "Prioritas", render: (r) => <PriorityBadge priority={String(r["priority"])} /> },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={String(r["status"])} /> },
+    {
+      key: "prioritas",
+      header: "Prioritas",
+      render: (r) => <PriorityBadge priority={String(r["priority"])} />,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <StatusBadge status={String(r["status"])} />,
+    },
     {
       key: "bayar",
       header: "Pembayaran",
@@ -232,7 +241,10 @@ function OrdersPage() {
                   <MoreHorizontal className="size-4" aria-hidden />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="max-h-80 w-60 overflow-y-auto rounded-2xl">
+              <DropdownMenuContent
+                align="end"
+                className="max-h-80 w-60 overflow-y-auto rounded-2xl"
+              >
                 <DropdownMenuLabel>Ubah status</DropdownMenuLabel>
                 {ORDER_STATUSES.map((s) => (
                   <DropdownMenuItem
@@ -262,7 +274,9 @@ function OrdersPage() {
           <DialogHeader className="border-b border-border/70 p-5">
             <DialogTitle>{detail ? String(detail["order_number"]) : "Detail pesanan"}</DialogTitle>
             <DialogDescription>
-              {detail ? `${namaKlien(detail["client_id"])} — ${rupiah(Number(detail["grand_total"]))}` : ""}
+              {detail
+                ? `${namaKlien(detail["client_id"])} — ${rupiah(Number(detail["grand_total"]))}`
+                : ""}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[70vh] p-5">
@@ -294,7 +308,9 @@ function OrdersPage() {
                 <li key={String(h["id"])} className="relative text-sm">
                   <span className="absolute -left-[21px] top-1.5 size-2 rounded-full bg-primary" />
                   <p className="font-medium">{labelStatus(String(h["new_status"]))}</p>
-                  <p className="text-xs text-muted-foreground">{tanggal(String(h["created_at"]), true)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {tanggal(String(h["created_at"]), true)}
+                  </p>
                 </li>
               ))}
               {(history.data ?? []).length === 0 ? (

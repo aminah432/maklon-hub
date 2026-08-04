@@ -31,6 +31,7 @@ export type PackagingDraft = {
   key: string;
   id?: string;
   packaging_material_id: string | null;
+  packaging_price_id: string | null;
   packaging_name_snapshot: string;
   category: string;
   supplier_name_snapshot: string;
@@ -115,6 +116,7 @@ export const bahanBaru = (): BahanDraft => ({
 export const packagingBaru = (): PackagingDraft => ({
   key: kunci(),
   packaging_material_id: null,
+  packaging_price_id: null,
   packaging_name_snapshot: "",
   category: "lainnya",
   supplier_name_snapshot: "",
@@ -226,6 +228,7 @@ export function packagingDariRow(r: DbRow): PackagingDraft {
     key: kunci(),
     id: s(r["id"]),
     packaging_material_id: r["packaging_material_id"] ? s(r["packaging_material_id"]) : null,
+    packaging_price_id: r["packaging_price_id"] ? s(r["packaging_price_id"]) : null,
     packaging_name_snapshot: s(r["packaging_name_snapshot"]),
     category: s(r["category"]) || "lainnya",
     supplier_name_snapshot: s(r["supplier_name_snapshot"]),

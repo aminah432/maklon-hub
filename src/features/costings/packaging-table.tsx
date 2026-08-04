@@ -13,20 +13,17 @@ import {
 import { CurrencyInput, DecimalInput, PercentageInput } from "@/components/common/inputs";
 import { labelStatus, rupiah } from "@/lib/format";
 import { KATEGORI_PACKAGING, SATUAN_ISI } from "@/lib/hpp";
-import {
-  hitungBarisPackaging,
-  kunci,
-  packagingBaru,
-  type PackagingDraft,
-} from "./hpp-types";
+import { hitungBarisPackaging, kunci, packagingBaru, type PackagingDraft } from "./hpp-types";
+import type { PackagingCatalogItem } from "./hpp-master-data";
 
 type Props = {
   packaging: PackagingDraft[];
   onChange: (rows: PackagingDraft[]) => void;
+  catalog?: PackagingCatalogItem[];
   readOnly?: boolean;
 };
 
-export function PackagingTable({ packaging, onChange, readOnly = false }: Props) {
+export function PackagingTable({ packaging, onChange, catalog = [], readOnly = false }: Props) {
   const total = useMemo(
     () => packaging.reduce((s, p) => s + hitungBarisPackaging(p).finalCost, 0),
     [packaging],
@@ -35,6 +32,20 @@ export function PackagingTable({ packaging, onChange, readOnly = false }: Props)
   const set = (key: string, patch: Partial<PackagingDraft>) =>
     onChange(packaging.map((p) => (p.key === key ? { ...p, ...patch } : p)));
   const hapus = (key: string) => onChange(packaging.filter((p) => p.key !== key));
+  const pilihMaster = (key: string, id: string) => {
+    const item = catalog.find((c) => c.id === id);
+    if (!item) return;
+    set(key, {
+      packaging_material_id: item.id,
+      packaging_price_id: item.priceId,
+      packaging_name_snapshot: item.name,
+      category: item.category,
+      supplier_name_snapshot: item.supplierName,
+      usage_unit: item.defaultUnit,
+      unit_price_snapshot: item.unitPrice,
+      capacity_quantity: item.capacity,
+    });
+  };
   const duplikat = (key: string) => {
     const i = packaging.findIndex((p) => p.key === key);
     if (i < 0) return;
@@ -84,6 +95,26 @@ export function PackagingTable({ packaging, onChange, readOnly = false }: Props)
                   >
                     <td className="text-center text-muted-foreground">{i + 1}</td>
                     <td>
+                      {catalog.length > 0 && !readOnly ? (
+                        <Select
+                          value={p.packaging_material_id ?? ""}
+                          onValueChange={(v) => pilihMaster(p.key, v)}
+                        >
+                          <SelectTrigger
+                            className="mb-1"
+                            aria-label={`Pilih master packaging baris ${i + 1}`}
+                          >
+                            <SelectValue placeholder="Pilih dari master" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {catalog.map((item) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : null}
                       <Input
                         value={p.packaging_name_snapshot}
                         disabled={readOnly}
@@ -213,6 +244,23 @@ export function PackagingTable({ packaging, onChange, readOnly = false }: Props)
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <Label className="text-xs text-muted-foreground">Nama packaging {i + 1}</Label>
+                  {catalog.length > 0 && !readOnly ? (
+                    <Select
+                      value={p.packaging_material_id ?? ""}
+                      onValueChange={(v) => pilihMaster(p.key, v)}
+                    >
+                      <SelectTrigger className="mb-1">
+                        <SelectValue placeholder="Pilih dari master packaging" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {catalog.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : null}
                   <Input
                     value={p.packaging_name_snapshot}
                     disabled={readOnly}

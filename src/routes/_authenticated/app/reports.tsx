@@ -29,7 +29,8 @@ export const Route = createFileRoute("/_authenticated/app/reports")({
       { title: "Laporan — Maklon Control Center" },
       {
         name: "description",
-        content: "Laporan penjualan, laba, produksi, dan pembayaran maklon dalam satu tampilan ringkas.",
+        content:
+          "Laporan penjualan, laba, produksi, dan pembayaran maklon dalam satu tampilan ringkas.",
       },
       { property: "og:title", content: "Laporan — Maklon Control Center" },
       { property: "og:description", content: "Analitik penjualan dan produksi maklon." },
@@ -39,7 +40,13 @@ export const Route = createFileRoute("/_authenticated/app/reports")({
   }),
 });
 
-const WARNA = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+const WARNA = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
 function bulanKey(v: unknown): string {
   return String(v ?? "").slice(0, 7);
@@ -54,8 +61,7 @@ function ReportsPage() {
   const batches = useRows<DbRow>("production_batches", { scopeId });
   const products = useRows<DbRow>("products", { scopeId });
 
-  const memuat =
-    orders.isLoading || items.isLoading || payments.isLoading || batches.isLoading;
+  const memuat = orders.isLoading || items.isLoading || payments.isLoading || batches.isLoading;
 
   const penjualanBulanan = useMemo(() => {
     const map = new Map<string, { bulan: string; omzet: number; bayar: number }>();
@@ -146,8 +152,20 @@ function ReportsPage() {
                   <YAxis width={70} fontSize={12} tickFormatter={(v: number) => angka(v / 1000)} />
                   <Tooltip formatter={(v: number) => rupiah(v)} />
                   <Legend />
-                  <Line type="monotone" dataKey="omzet" name="Omzet" stroke={WARNA[0]} strokeWidth={2} />
-                  <Line type="monotone" dataKey="bayar" name="Kas masuk" stroke={WARNA[1]} strokeWidth={2} />
+                  <Line
+                    type="monotone"
+                    dataKey="omzet"
+                    name="Omzet"
+                    stroke={WARNA[0]}
+                    strokeWidth={2}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="bayar"
+                    name="Kas masuk"
+                    stroke={WARNA[1]}
+                    strokeWidth={2}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -159,7 +177,14 @@ function ReportsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={produkTeratas}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.25} />
-                  <XAxis dataKey="nama" fontSize={11} interval={0} height={50} angle={-15} dy={10} />
+                  <XAxis
+                    dataKey="nama"
+                    fontSize={11}
+                    interval={0}
+                    height={50}
+                    angle={-15}
+                    dy={10}
+                  />
                   <YAxis width={70} fontSize={12} tickFormatter={(v: number) => angka(v / 1000)} />
                   <Tooltip formatter={(v: number) => rupiah(v)} />
                   <Bar dataKey="nilai" name="Penjualan" fill={WARNA[2]} radius={[6, 6, 0, 0]} />
@@ -173,7 +198,13 @@ function ReportsPage() {
             <div className="mt-4 h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={statusProduksi} dataKey="jumlah" nameKey="status" outerRadius={95} label>
+                  <Pie
+                    data={statusProduksi}
+                    dataKey="jumlah"
+                    nameKey="status"
+                    outerRadius={95}
+                    label
+                  >
                     {statusProduksi.map((_, i) => (
                       <Cell key={i} fill={WARNA[i % WARNA.length]} />
                     ))}
@@ -204,9 +235,7 @@ function ReportsPage() {
                 <dt className="text-muted-foreground">Rata-rata nilai pesanan</dt>
                 <dd className="font-semibold">
                   {rupiah(
-                    (orders.data ?? []).length > 0
-                      ? totalOmzet / (orders.data ?? []).length
-                      : 0,
+                    (orders.data ?? []).length > 0 ? totalOmzet / (orders.data ?? []).length : 0,
                   )}
                 </dd>
               </div>

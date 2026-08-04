@@ -36,7 +36,12 @@ import { useClientOptions } from "@/features/products/use-products";
 import type { Brand } from "@/features/brands/use-brands";
 
 const opsional = (max: number) =>
-  z.string().trim().max(max, { message: `Maksimal ${max} karakter` }).optional().or(z.literal(""));
+  z
+    .string()
+    .trim()
+    .max(max, { message: `Maksimal ${max} karakter` })
+    .optional()
+    .or(z.literal(""));
 
 export const brandSchema = z.object({
   company_id: z.string().uuid({ message: "Perusahaan wajib dipilih" }),

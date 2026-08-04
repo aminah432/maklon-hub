@@ -10,6 +10,7 @@ import {
   hitungSimulasiMoq,
   kebutuhanBahan,
   statusFormula,
+  type HppInput,
 } from "./hpp";
 
 // Data contoh hanya untuk pengujian, tidak dimasukkan ke database.
@@ -100,6 +101,28 @@ describe("HPP mengikuti contoh spreadsheet", () => {
 
   it("HPP batch = HPP unit × jumlah unit", () => {
     expect(hasil.hppBatch).toBeCloseTo(hasil.hppPerUnit * 1000, 4);
+  });
+});
+
+describe("HPP per unit layak jual", () => {
+  it("reject dan penyusutan menaikkan HPP tanpa mengubah biaya batch", () => {
+    const dasar: HppInput = {
+      bahan: [{ usage_percentage: 100, normalized_unit_price_snapshot: 100, waste_percentage: 0 }],
+      packaging: [],
+      formulaBasis: 10,
+      overheadMode: "gabungan",
+      combinedOverheadPercentage: 0,
+      biayaOperasional: [],
+      jumlahUnit: 1000,
+    };
+    const normal = hitungHpp(dasar);
+    const rugi = hitungHpp({ ...dasar, rejectPercentage: 5, shrinkagePercentage: 3 });
+
+    expect(rugi.hppBatch).toBeCloseTo(normal.hppBatch, 6);
+    expect(rugi.sellableUnits).toBeCloseTo(920, 6);
+    expect(rugi.hppPerUnit).toBeCloseTo(normal.hppBatch / 920, 6);
+    expect(rugi.hppPerUnit).toBeGreaterThan(normal.hppPerUnit);
+    expect(rugi.lossAdjustment).toBeGreaterThan(0);
   });
 });
 
@@ -208,7 +231,9 @@ describe("mode biaya terpisah", () => {
   it("biaya tetap batch menurunkan HPP saat volume naik", () => {
     const buat = (unit: number) =>
       hitungHpp({
-        bahan: [{ usage_percentage: 100, normalized_unit_price_snapshot: 100, waste_percentage: 0 }],
+        bahan: [
+          { usage_percentage: 100, normalized_unit_price_snapshot: 100, waste_percentage: 0 },
+        ],
         packaging: [],
         formulaBasis: 10,
         overheadMode: "terpisah",

@@ -26,7 +26,8 @@ export const Route = createFileRoute("/_authenticated/app/finance/payments")({
       { title: "Pembayaran — Maklon Control Center" },
       {
         name: "description",
-        content: "Riwayat pembayaran klien maklon lengkap dengan metode, referensi, dan status verifikasi.",
+        content:
+          "Riwayat pembayaran klien maklon lengkap dengan metode, referensi, dan status verifikasi.",
       },
       { property: "og:title", content: "Pembayaran — Maklon Control Center" },
       { property: "og:description", content: "Riwayat pembayaran klien maklon." },

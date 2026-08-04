@@ -219,10 +219,7 @@ export function dasarPerhitungan(base: string, ctx: KonteksBiaya): number {
 }
 
 /** Nominal satu baris biaya operasional, selalu dalam rupiah per unit. */
-export function hitungBiayaOperasional(
-  biaya: BiayaOperasionalInput,
-  ctx: KonteksBiaya,
-): number {
+export function hitungBiayaOperasional(biaya: BiayaOperasionalInput, ctx: KonteksBiaya): number {
   if (biaya.calculation_type === "nominal_unit") return num(biaya.fixed_value);
   if (biaya.calculation_type === "nominal_batch") {
     const unit = num(ctx.jumlahUnit) > 0 ? num(ctx.jumlahUnit) : 1;
@@ -243,6 +240,10 @@ export type HppInput = {
   /** dipakai pada mode terpisah */
   biayaOperasional: BiayaOperasionalInput[];
   jumlahUnit: number;
+  /** persentase unit gagal QC dari jumlah produksi yang direncanakan */
+  rejectPercentage?: number;
+  /** persentase kehilangan hasil selama proses produksi */
+  shrinkagePercentage?: number;
 };
 
 export type HppResult = {
@@ -255,6 +256,12 @@ export type HppResult = {
   totalOperasional: number;
   /** rincian nominal per baris biaya operasional (mode terpisah) */
   rincianOperasional: number[];
+  /** HPP sebelum dampak reject dan penyusutan */
+  hppPerPlannedUnit: number;
+  /** jumlah unit yang diperkirakan dapat dijual */
+  sellableUnits: number;
+  /** kenaikan HPP/unit karena biaya batch dibagi ke unit layak jual */
+  lossAdjustment: number;
   hppPerUnit: number;
   hppBatch: number;
 };
@@ -290,8 +297,14 @@ export function hitungHpp(input: HppInput): HppResult {
   }
 
   const totalOperasional = btkl + ohp + biayaTambahan;
-  const hppPerUnit = subtotal + totalOperasional;
-  const unit = num(input.jumlahUnit);
+  const hppPerPlannedUnit = subtotal + totalOperasional;
+  const unit = Math.max(num(input.jumlahUnit), 0);
+  const reject = (unit * Math.max(num(input.rejectPercentage), 0)) / 100;
+  const shrinkage = (unit * Math.max(num(input.shrinkagePercentage), 0)) / 100;
+  const sellableUnits = Math.max(unit - reject - shrinkage, 0);
+  const hppBatch = hppPerPlannedUnit * unit;
+  const hppPerUnit =
+    unit <= 0 ? hppPerPlannedUnit : sellableUnits > 0 ? hppBatch / sellableUnits : 0;
 
   return {
     totalFormula,
@@ -302,8 +315,11 @@ export function hitungHpp(input: HppInput): HppResult {
     biayaTambahan,
     totalOperasional,
     rincianOperasional,
+    hppPerPlannedUnit,
+    sellableUnits,
+    lossAdjustment: Math.max(hppPerUnit - hppPerPlannedUnit, 0),
     hppPerUnit,
-    hppBatch: hppPerUnit * (unit > 0 ? unit : 0),
+    hppBatch,
   };
 }
 
@@ -484,20 +500,30 @@ export function validasiKalkulasi(opts: {
       level: "error",
       pesan: `Total formula ${opts.totalPersen.toFixed(3)}% — kelebihan ${(opts.totalPersen - 100).toFixed(3)}%`,
     });
-  if (opts.formulaBasis <= 0)
-    out.push({ level: "error", pesan: "Basis formula belum diisi." });
-  if (opts.netContent !== null && opts.netContent > 0 && opts.formulaBasis > 0 && opts.formulaBasis < opts.netContent)
+  if (opts.formulaBasis <= 0) out.push({ level: "error", pesan: "Basis formula belum diisi." });
+  if (
+    opts.netContent !== null &&
+    opts.netContent > 0 &&
+    opts.formulaBasis > 0 &&
+    opts.formulaBasis < opts.netContent
+  )
     out.push({
       level: "warning",
       pesan: "Basis formula lebih kecil daripada isi bersih produk.",
     });
   for (const b of opts.bahan) {
     if (num(b.normalized_unit_price_snapshot) <= 0)
-      out.push({ level: "warning", pesan: `Harga satuan "${b.material_name_snapshot}" masih nol.` });
+      out.push({
+        level: "warning",
+        pesan: `Harga satuan "${b.material_name_snapshot}" masih nol.`,
+      });
   }
   for (const p of opts.packaging) {
     if (num(p.unit_price_snapshot) <= 0)
-      out.push({ level: "warning", pesan: `Harga packaging "${p.packaging_name_snapshot}" masih nol.` });
+      out.push({
+        level: "warning",
+        pesan: `Harga packaging "${p.packaging_name_snapshot}" masih nol.`,
+      });
   }
   if (opts.hpp <= 0) out.push({ level: "error", pesan: "HPP masih nol." });
   if (st !== "pas" && opts.status === "aktif")

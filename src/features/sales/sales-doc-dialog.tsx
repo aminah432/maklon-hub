@@ -56,10 +56,25 @@ export function SalesDocDialog({
   scopeId: string | null;
   defaultCompanyId: string | null;
 }) {
-  const clients = useRows<DbRow>("clients", { scopeId, orderBy: "owner_name", asc: true, archived: false });
+  const clients = useRows<DbRow>("clients", {
+    scopeId,
+    orderBy: "owner_name",
+    asc: true,
+    archived: false,
+  });
   const brands = useRows<DbRow>("brands", { scopeId, orderBy: "name", asc: true, archived: false });
-  const brokers = useRows<DbRow>("brokers", { scopeId, orderBy: "name", asc: true, archived: false });
-  const products = useRows<DbRow>("products", { scopeId, orderBy: "name", asc: true, archived: false });
+  const brokers = useRows<DbRow>("brokers", {
+    scopeId,
+    orderBy: "name",
+    asc: true,
+    archived: false,
+  });
+  const products = useRows<DbRow>("products", {
+    scopeId,
+    orderBy: "name",
+    asc: true,
+    archived: false,
+  });
   const costings = useRows<DbRow>("costing_versions", { scopeId });
   const prices = useRows<DbRow>("product_prices", { scopeId, eq: { is_active: true } });
 
@@ -235,7 +250,9 @@ export function SalesDocDialog({
     },
   );
 
-  const klienTerfilter = (clients.data ?? []).filter((c) => !scopeId || String(c["company_id"]) === scopeId);
+  const klienTerfilter = (clients.data ?? []).filter(
+    (c) => !scopeId || String(c["company_id"]) === scopeId,
+  );
   const brandTerfilter = (brands.data ?? []).filter(
     (b) => clientId === "" || String(b["client_id"]) === clientId,
   );
@@ -332,7 +349,11 @@ export function SalesDocDialog({
           <div className="rounded-2xl border border-border/70">
             <div className="flex items-center justify-between gap-2 border-b border-border/70 px-4 py-3">
               <h3 className="text-sm font-semibold">Item</h3>
-              <Button size="sm" variant="outline" onClick={() => setLines((p) => [...p, lineBaru()])}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setLines((p) => [...p, lineBaru()])}
+              >
                 <Plus className="size-4" aria-hidden /> Item
               </Button>
             </div>
@@ -353,7 +374,11 @@ export function SalesDocDialog({
                           setLines((p) =>
                             p.map((r, i) =>
                               i === idx
-                                ? { ...r, product_id: v, unit_price: r.unit_price ?? (hargaProduk(v) || null) }
+                                ? {
+                                    ...r,
+                                    product_id: v,
+                                    unit_price: r.unit_price ?? (hargaProduk(v) || null),
+                                  }
                                 : r,
                             ),
                           )
@@ -381,7 +406,10 @@ export function SalesDocDialog({
                           setLines((p) =>
                             p.map((r, i) =>
                               i === idx
-                                ? { ...r, quantity: e.target.value === "" ? null : Number(e.target.value) }
+                                ? {
+                                    ...r,
+                                    quantity: e.target.value === "" ? null : Number(e.target.value),
+                                  }
                                 : r,
                             ),
                           )
@@ -393,7 +421,9 @@ export function SalesDocDialog({
                       <CurrencyInput
                         value={l.unit_price}
                         onChange={(v) =>
-                          setLines((p) => p.map((r, i) => (i === idx ? { ...r, unit_price: v } : r)))
+                          setLines((p) =>
+                            p.map((r, i) => (i === idx ? { ...r, unit_price: v } : r)),
+                          )
                         }
                       />
                     </div>
@@ -455,7 +485,9 @@ export function SalesDocDialog({
           </Button>
           <Button
             disabled={simpan.isPending}
-            onClick={() => simpan.mutate(undefined as never, { onSuccess: () => onOpenChange(false) })}
+            onClick={() =>
+              simpan.mutate(undefined as never, { onSuccess: () => onOpenChange(false) })
+            }
           >
             {simpan.isPending ? "Menyimpan…" : "Simpan"}
           </Button>

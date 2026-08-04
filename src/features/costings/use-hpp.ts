@@ -23,13 +23,29 @@ export function useVersiHpp(id: string) {
     queryFn: async () => {
       const versi = await db("costing_versions").select("*").eq("id", id).single();
       if (versi.error) throw new Error(versi.error.message);
-      const [bahan, packaging, biaya, moq] = await Promise.all([
-        db("costing_ingredients").select("*").eq("costing_version_id", id).order("sort_order", { ascending: true }),
-        db("costing_packaging_items").select("*").eq("costing_version_id", id).order("sort_order", { ascending: true }),
-        db("costing_operational_costs").select("*").eq("costing_version_id", id).order("sort_order", { ascending: true }),
-        db("costing_moq_simulations").select("*").eq("costing_version_id", id).order("sort_order", { ascending: true }),
+      const [bahan, packaging, biaya, moq, legacyItems] = await Promise.all([
+        db("costing_ingredients")
+          .select("*")
+          .eq("costing_version_id", id)
+          .order("sort_order", { ascending: true }),
+        db("costing_packaging_items")
+          .select("*")
+          .eq("costing_version_id", id)
+          .order("sort_order", { ascending: true }),
+        db("costing_operational_costs")
+          .select("*")
+          .eq("costing_version_id", id)
+          .order("sort_order", { ascending: true }),
+        db("costing_moq_simulations")
+          .select("*")
+          .eq("costing_version_id", id)
+          .order("sort_order", { ascending: true }),
+        db("costing_items")
+          .select("*")
+          .eq("costing_version_id", id)
+          .order("sort_order", { ascending: true }),
       ]);
-      const err = bahan.error ?? packaging.error ?? biaya.error ?? moq.error;
+      const err = bahan.error ?? packaging.error ?? biaya.error ?? moq.error ?? legacyItems.error;
       if (err) throw new Error(err.message);
       return {
         versi: versi.data as DbRow,
@@ -37,6 +53,7 @@ export function useVersiHpp(id: string) {
         packaging: (packaging.data ?? []) as DbRow[],
         biaya: (biaya.data ?? []) as DbRow[],
         moq: (moq.data ?? []) as DbRow[],
+        legacyItems: (legacyItems.data ?? []) as DbRow[],
       };
     },
   });
@@ -63,6 +80,8 @@ export function ringkasanDraft(p: Omit<SimpanPayload, "id">) {
     combinedOverheadPercentage: Number(p.header.combined_overhead_percentage ?? 0),
     biayaOperasional: p.biaya.map(biayaKeInput),
     jumlahUnit: unit,
+    rejectPercentage: Number(p.header.estimated_reject_percentage ?? 0),
+    shrinkagePercentage: Number(p.header.estimated_shrinkage_percentage ?? 0),
   });
   return hasil;
 }
@@ -80,6 +99,44 @@ export function simulasiDariDraft(p: Omit<SimpanPayload, "id">, hpp: number) {
       rounding_method: p.header.rounding_method,
     }),
   }));
+}
+
+/** Membuat header draft baru; rincian lengkap langsung disimpan oleh useSimpanHpp. */
+export function useBuatVersiHppKosong() {
+  return useAction(async (header: HeaderDraft) => {
+    if (!header.company_id || !header.product_id) {
+      throw new Error("Perusahaan dan produk wajib dipilih");
+    }
+    const semua = await db("costing_versions")
+      .select("version_number")
+      .eq("product_id", header.product_id);
+    if (semua.error) throw new Error(semua.error.message);
+    const versionNumber =
+      Math.max(
+        0,
+        ...(semua.data ?? []).map((row) => Number((row as DbRow)["version_number"] ?? 0)),
+      ) + 1;
+    const { data, error } = await db("costing_versions")
+      .insert({
+        company_id: header.company_id,
+        client_id: header.client_id,
+        brand_id: header.brand_id,
+        product_id: header.product_id,
+        version_name: header.version_name || `Kalkulasi v${versionNumber}`,
+        version_number: versionNumber,
+        status: "draft",
+        planned_quantity: Number(header.planned_quantity ?? 0),
+        good_units: Number(header.planned_quantity ?? 0),
+        total_batch_cost: 0,
+        unit_hpp: 0,
+        notes: header.notes || null,
+      })
+      .select("id");
+    if (error) throw new Error(error.message);
+    const id = String(((data ?? [])[0] as DbRow | undefined)?.["id"] ?? "");
+    if (!id) throw new Error("Gagal membuat versi HPP baru");
+    return id;
+  });
 }
 
 /** Simpan header + seluruh baris anak. Baris anak versi ini ditulis ulang, versi lain tidak tersentuh. */
@@ -180,6 +237,7 @@ export function useSimpanHpp() {
             company_id: h.company_id,
             costing_version_id: p.id,
             packaging_material_id: k.packaging_material_id,
+            packaging_price_id: k.packaging_price_id,
             packaging_name_snapshot: k.packaging_name_snapshot || "(tanpa nama)",
             category: k.category,
             supplier_name_snapshot: k.supplier_name_snapshot || null,
@@ -264,7 +322,11 @@ export function useSimpanHpp() {
 export function useAktifkanVersi() {
   const qc = useQueryClient();
   return useAction(
-    async (v: { id: string; productId: string; harga?: { clientPrice: number; hpp: number; companyId: string } }) => {
+    async (v: {
+      id: string;
+      productId: string;
+      harga?: { clientPrice: number; hpp: number; companyId: string };
+    }) => {
       const lama = await db("costing_versions")
         .update({ status: "digantikan" })
         .eq("product_id", v.productId)
@@ -274,7 +336,9 @@ export function useAktifkanVersi() {
       if (error) throw new Error(error.message);
 
       if (v.harga && v.harga.clientPrice > 0) {
-        const off = await db("product_prices").update({ is_active: false }).eq("product_id", v.productId);
+        const off = await db("product_prices")
+          .update({ is_active: false })
+          .eq("product_id", v.productId);
         if (off.error) throw new Error(off.error.message);
         const ins = await db("product_prices").insert({
           company_id: v.harga.companyId,
@@ -312,7 +376,8 @@ export function useBuatVersiBaru() {
         .eq("product_id", String(row["product_id"]));
       if (semua.error) throw new Error(semua.error.message);
       const next =
-        Math.max(0, ...(semua.data ?? []).map((r) => Number((r as DbRow)["version_number"] ?? 0))) + 1;
+        Math.max(0, ...(semua.data ?? []).map((r) => Number((r as DbRow)["version_number"] ?? 0))) +
+        1;
 
       const baru: DbRow = { ...row };
       delete baru["id"];

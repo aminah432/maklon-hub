@@ -41,11 +41,13 @@ export function FilterBar({
   onReset?: () => void;
   trailing?: ReactNode;
 }) {
-  const aktif =
-    search.trim() !== "" || filters.some((f) => f.value !== "semua" && f.value !== "");
+  const aktif = search.trim() !== "" || filters.some((f) => f.value !== "semua" && f.value !== "");
 
   return (
-    <section className="mb-4 rounded-2xl border border-border/70 bg-card/60 p-3" aria-label="Pencarian dan filter">
+    <section
+      className="mb-4 rounded-2xl border border-border/70 bg-card/60 p-3"
+      aria-label="Pencarian dan filter"
+    >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative min-w-0 flex-1">
           <Search
@@ -76,7 +78,10 @@ export function FilterBar({
             <Select key={f.key} value={f.value || "semua"} onValueChange={f.onChange}>
               <SelectTrigger
                 aria-label={f.label}
-                className={cn("rounded-xl lg:w-[190px]", f.value !== "semua" && "border-primary/60 text-foreground")}
+                className={cn(
+                  "rounded-xl lg:w-[190px]",
+                  f.value !== "semua" && "border-primary/60 text-foreground",
+                )}
               >
                 <SelectValue />
               </SelectTrigger>

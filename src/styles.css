@@ -298,7 +298,6 @@
     -webkit-overflow-scrolling: touch;
   }
 
-
   * {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in oklab, var(--color-primary) 35%, transparent) transparent;
@@ -374,8 +373,16 @@ html body h4 {
   pointer-events: none;
   opacity: 0.4;
   background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--color-primary) 14%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--color-primary) 14%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-primary) 14%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-primary) 14%, transparent) 1px,
+      transparent 1px
+    );
   background-size: 44px 44px;
   mask-image: radial-gradient(ellipse at center, #000 35%, transparent 85%);
   /* Animasi transform (GPU) — tidak memicu repaint saat scroll. */
@@ -408,7 +415,8 @@ html body h4 {
 }
 
 @keyframes soft-float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
@@ -432,10 +440,13 @@ html body h4 {
 }
 
 @keyframes mascot-blink {
-  0%, 92%, 100% {
+  0%,
+  92%,
+  100% {
     transform: scaleY(0);
   }
-  94%, 97% {
+  94%,
+  97% {
     transform: scaleY(1);
   }
 }
@@ -444,7 +455,6 @@ html body h4 {
   transform-origin: top center;
   animation: mascot-blink 4.5s ease-in-out infinite;
 }
-
 
 .animate-rise-in {
   animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;

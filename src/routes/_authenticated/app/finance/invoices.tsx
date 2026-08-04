@@ -33,7 +33,8 @@ export const Route = createFileRoute("/_authenticated/app/finance/invoices")({
       { title: "Invoice — Maklon Control Center" },
       {
         name: "description",
-        content: "Terbitkan invoice DP, pelunasan, dan penuh untuk pesanan maklon serta pantau statusnya.",
+        content:
+          "Terbitkan invoice DP, pelunasan, dan penuh untuk pesanan maklon serta pantau statusnya.",
       },
       { property: "og:title", content: "Invoice — Maklon Control Center" },
       { property: "og:description", content: "Kelola invoice maklon." },
@@ -173,7 +174,11 @@ function InvoicesPage() {
         </div>
       ),
     },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={String(r["status"])} /> },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <StatusBadge status={String(r["status"])} />,
+    },
   ];
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");

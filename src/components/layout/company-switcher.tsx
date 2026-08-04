@@ -37,13 +37,19 @@ function LogoPerusahaan({
   }
   return (
     <span
-      className={cn(box, "grid shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-0.5")}
+      className={cn(
+        box,
+        "grid shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-0.5",
+      )}
     >
       <img
         src={src}
         alt={`Logo ${nama}`}
         loading="lazy"
-        className={cn("size-full object-contain transition-transform duration-300", skalaLogo(code))}
+        className={cn(
+          "size-full object-contain transition-transform duration-300",
+          skalaLogo(code),
+        )}
       />
     </span>
   );
@@ -90,7 +96,11 @@ export function CompanySwitcher({ collapsed = false }: { collapsed?: boolean }) 
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {companies.map((c) => (
-          <DropdownMenuItem key={c.id} className="gap-2 rounded-xl py-2" onClick={() => setActive(c.id)}>
+          <DropdownMenuItem
+            key={c.id}
+            className="gap-2 rounded-xl py-2"
+            onClick={() => setActive(c.id)}
+          >
             <LogoPerusahaan code={String(c.code ?? "")} nama={String(c.name ?? "")} size="sm" />
 
             <span className="flex-1 truncate">
