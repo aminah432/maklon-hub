@@ -178,8 +178,8 @@ export function CostingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[96vh] w-[96vw] max-w-[1280px] overflow-hidden rounded-2xl p-0 min-[1700px]:max-w-[1680px]">
-        <DialogHeader className="border-b border-border/70 px-5 py-4">
+      <DialogContent className="h-[96dvh] max-h-[96dvh] w-[96vw] max-w-[1280px] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-2xl p-0 min-[1700px]:max-w-[1680px]">
+        <DialogHeader className="shrink-0 border-b border-border/70 px-5 py-4">
           <DialogTitle>Buat Versi HPP</DialogTitle>
           <DialogDescription>
             Susun formula, packaging, biaya produksi, harga MOQ, dan riwayat dalam satu modul. Versi
@@ -187,7 +187,7 @@ export function CostingDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="min-w-0 max-h-[76vh] px-4 sm:px-5">
+        <ScrollArea className="h-full min-h-0 min-w-0 px-4 sm:px-5">
           <div className="min-w-0 space-y-5 py-5">
             <section className="rounded-2xl border border-border/70 bg-card p-4">
               <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 min-[1700px]:grid-cols-4">
@@ -497,7 +497,7 @@ export function CostingDialog({
           </div>
         </ScrollArea>
 
-        <DialogFooter className="border-t border-border/70 px-5 py-4">
+        <DialogFooter className="relative z-10 shrink-0 gap-2 border-t border-border/70 bg-background px-5 py-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Batal
           </Button>
