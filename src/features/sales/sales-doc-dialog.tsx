@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { SearchableSelect } from "@/components/common/searchable-select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,18 +13,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { CurrencyInput } from "@/components/common/inputs";
 import { db, nomorDokumen, useAction, useRows, type DbRow } from "@/lib/db";
 import { hitungLaba } from "@/lib/calc";
 import { isoDate, rupiah } from "@/lib/format";
+import { buatSnapshotProduk } from "@/features/sales/product-order-snapshot";
 
 export type Mode = "quotation" | "order";
 
@@ -33,6 +28,9 @@ type Line = {
   quantity: number | null;
   unit_price: number | null;
   discount: number | null;
+  unit: string;
+  unit_hpp: number;
+  costing_version_id: string | null;
 };
 
 const lineBaru = (): Line => ({
@@ -41,6 +39,9 @@ const lineBaru = (): Line => ({
   quantity: 100,
   unit_price: null,
   discount: 0,
+  unit: "pcs",
+  unit_hpp: 0,
+  costing_version_id: null,
 });
 
 export function SalesDocDialog({
@@ -101,17 +102,13 @@ export function SalesDocDialog({
     setLines([lineBaru()]);
   }, [open]);
 
-  const hppProduk = (productId: string) => {
-    const list = (costings.data ?? []).filter((c) => String(c["product_id"]) === productId);
-    const aktif = list.find((c) => String(c["status"]) === "aktif") ?? list[0];
-    return { hpp: Number(aktif?.["unit_hpp"] ?? 0), versionId: aktif ? String(aktif["id"]) : null };
-  };
-  const hargaProduk = (productId: string) => {
-    const p = (prices.data ?? []).find((x) => String(x["product_id"]) === productId);
-    return Number(p?.["client_price"] ?? 0);
-  };
-
-  const produkTerpilih = (id: string) => (products.data ?? []).find((p) => String(p["id"]) === id);
+  const snapshotProduk = (productId: string) =>
+    buatSnapshotProduk({
+      productId,
+      products: products.data ?? [],
+      costings: costings.data ?? [],
+      prices: prices.data ?? [],
+    });
 
   const hitung = useMemo(() => {
     let subtotal = 0;
@@ -120,20 +117,18 @@ export function SalesDocDialog({
       const qty = l.quantity ?? 0;
       const harga = l.unit_price ?? 0;
       const disc = l.discount ?? 0;
-      const { hpp } = hppProduk(l.product_id);
       const s = qty * harga - disc;
       subtotal += s;
       laba += hitungLaba({
         finalUnitPrice: harga,
         quantity: qty,
-        unitHpp: hpp,
+        unitHpp: l.unit_hpp,
         discount: disc,
       }).netContribution;
     }
     const grand = subtotal + (pajak ?? 0) + (ongkir ?? 0);
     return { subtotal, grand, laba };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lines, pajak, ongkir, costings.data]);
+  }, [lines, pajak, ongkir]);
 
   const companyIdAktif = () => {
     if (scopeId) return scopeId;
@@ -141,7 +136,7 @@ export function SalesDocDialog({
     return klien ? String(klien["company_id"]) : (defaultCompanyId ?? "");
   };
 
-  const simpan = useAction(
+  const simpan = useAction<void, void>(
     async () => {
       const companyId = companyIdAktif();
       if (!companyId) throw new Error("Perusahaan tidak diketahui");
@@ -176,21 +171,21 @@ export function SalesDocDialog({
           .select("id");
         if (error) throw new Error(error.message);
         const id = String(((data ?? [])[0] as DbRow | undefined)?.["id"] ?? "");
+        if (!id) throw new Error("ID penawaran tidak diterima setelah penyimpanan");
         const items = isi.map((l) => {
-          const { hpp, versionId } = hppProduk(l.product_id);
           const qty = l.quantity ?? 0;
           const harga = l.unit_price ?? 0;
           const disc = l.discount ?? 0;
           const sub = qty * harga - disc;
-          const profit = sub - hpp * qty;
+          const profit = sub - l.unit_hpp * qty;
           return {
             company_id: companyId,
             quotation_id: id,
             product_id: l.product_id,
-            costing_version_id: versionId,
+            costing_version_id: l.costing_version_id,
             quantity: qty,
-            unit: String(produkTerpilih(l.product_id)?.["unit"] ?? "pcs"),
-            unit_hpp_snapshot: hpp,
+            unit: l.unit,
+            unit_hpp_snapshot: l.unit_hpp,
             unit_price: harga,
             discount: disc,
             broker_fee: 0,
@@ -200,7 +195,10 @@ export function SalesDocDialog({
           };
         });
         const ins = await db("quotation_items").insert(items);
-        if (ins.error) throw new Error(ins.error.message);
+        if (ins.error) {
+          await db("quotations").delete().eq("id", id);
+          throw new Error(ins.error.message);
+        }
       } else {
         const { data, error } = await db("orders")
           .insert({
@@ -217,21 +215,21 @@ export function SalesDocDialog({
           .select("id");
         if (error) throw new Error(error.message);
         const id = String(((data ?? [])[0] as DbRow | undefined)?.["id"] ?? "");
+        if (!id) throw new Error("ID pesanan tidak diterima setelah penyimpanan");
         const items = isi.map((l) => {
-          const { hpp, versionId } = hppProduk(l.product_id);
           const qty = l.quantity ?? 0;
           const harga = l.unit_price ?? 0;
           const disc = l.discount ?? 0;
           const sub = qty * harga - disc;
-          const profit = sub - hpp * qty;
+          const profit = sub - l.unit_hpp * qty;
           return {
             company_id: companyId,
             order_id: id,
             product_id: l.product_id,
-            costing_version_id: versionId,
+            costing_version_id: l.costing_version_id,
             quantity: qty,
-            unit: String(produkTerpilih(l.product_id)?.["unit"] ?? "pcs"),
-            unit_hpp_snapshot: hpp,
+            unit: l.unit,
+            unit_hpp_snapshot: l.unit_hpp,
             unit_price_snapshot: harga,
             discount: disc,
             broker_fee: 0,
@@ -241,7 +239,10 @@ export function SalesDocDialog({
           };
         });
         const ins = await db("order_items").insert(items);
-        if (ins.error) throw new Error(ins.error.message);
+        if (ins.error) {
+          await db("orders").delete().eq("id", id);
+          throw new Error(ins.error.message);
+        }
       }
     },
     {
@@ -271,48 +272,64 @@ export function SalesDocDialog({
           <div className="grid gap-4 py-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-1.5">
               <Label htmlFor="sd-klien">Klien *</Label>
-              <Select value={clientId} onValueChange={setClientId}>
-                <SelectTrigger id="sd-klien" aria-label="Pilih klien">
-                  <SelectValue placeholder="Pilih klien" />
-                </SelectTrigger>
-                <SelectContent>
-                  {klienTerfilter.map((c) => (
-                    <SelectItem key={String(c["id"])} value={String(c["id"])}>
-                      {String(c["client_code"])} — {String(c["owner_name"])}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                id="sd-klien"
+                value={clientId}
+                onValueChange={(value) => {
+                  setClientId(value);
+                  setBrandId("");
+                }}
+                options={klienTerfilter.map((client) => {
+                  const code = String(client["client_code"] ?? "");
+                  const name = String(
+                    client["business_name"] ?? client["owner_name"] ?? "Tanpa nama",
+                  );
+                  return {
+                    value: String(client["id"]),
+                    label: code ? `${code} — ${name}` : name,
+                    keywords: `${code} ${name}`,
+                  };
+                })}
+                placeholder="Pilih klien"
+                searchPlaceholder="Cari kode atau nama klien..."
+                aria-label="Pilih klien"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sd-brand">Brand</Label>
-              <Select value={brandId} onValueChange={setBrandId}>
-                <SelectTrigger id="sd-brand" aria-label="Pilih brand">
-                  <SelectValue placeholder="Pilih brand" />
-                </SelectTrigger>
-                <SelectContent>
-                  {brandTerfilter.map((b) => (
-                    <SelectItem key={String(b["id"])} value={String(b["id"])}>
-                      {String(b["name"])}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                id="sd-brand"
+                value={brandId || "none"}
+                onValueChange={(value) => setBrandId(value === "none" ? "" : value)}
+                options={[
+                  { value: "none", label: "Tanpa brand" },
+                  ...brandTerfilter.map((brand) => ({
+                    value: String(brand["id"]),
+                    label: String(brand["name"]),
+                  })),
+                ]}
+                placeholder="Pilih brand"
+                searchPlaceholder="Cari brand..."
+                aria-label="Pilih brand"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sd-makelar">Makelar</Label>
-              <Select value={brokerId} onValueChange={setBrokerId}>
-                <SelectTrigger id="sd-makelar" aria-label="Pilih makelar">
-                  <SelectValue placeholder="Tanpa makelar" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(brokers.data ?? []).map((b) => (
-                    <SelectItem key={String(b["id"])} value={String(b["id"])}>
-                      {String(b["name"])}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                id="sd-makelar"
+                value={brokerId || "none"}
+                onValueChange={(value) => setBrokerId(value === "none" ? "" : value)}
+                options={[
+                  { value: "none", label: "Tanpa makelar" },
+                  ...(brokers.data ?? []).map((broker) => ({
+                    value: String(broker["id"]),
+                    label: String(broker["name"]),
+                  })),
+                ]}
+                placeholder="Tanpa makelar"
+                searchPlaceholder="Cari makelar..."
+                aria-label="Pilih makelar"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sd-tgl">
@@ -359,7 +376,6 @@ export function SalesDocDialog({
             </div>
             <div className="space-y-3 p-3">
               {lines.map((l, idx) => {
-                const { hpp } = hppProduk(l.product_id);
                 const sub = (l.quantity ?? 0) * (l.unit_price ?? 0) - (l.discount ?? 0);
                 return (
                   <div
@@ -368,34 +384,42 @@ export function SalesDocDialog({
                   >
                     <div className="space-y-1">
                       <Label className="text-xs">Produk</Label>
-                      <Select
+                      <SearchableSelect
                         value={l.product_id}
-                        onValueChange={(v) =>
-                          setLines((p) =>
-                            p.map((r, i) =>
-                              i === idx
+                        onValueChange={(value) => {
+                          const snapshot = snapshotProduk(value);
+                          setLines((current) =>
+                            current.map((row, rowIndex) =>
+                              rowIndex === idx
                                 ? {
-                                    ...r,
-                                    product_id: v,
-                                    unit_price: r.unit_price ?? (hargaProduk(v) || null),
+                                    ...row,
+                                    product_id: value,
+                                    quantity: snapshot.quantity,
+                                    unit: snapshot.unit,
+                                    unit_hpp: snapshot.unitHpp,
+                                    unit_price: snapshot.unitPrice || null,
+                                    costing_version_id: snapshot.costingVersionId,
                                   }
-                                : r,
+                                : row,
                             ),
-                          )
-                        }
-                      >
-                        <SelectTrigger aria-label="Pilih produk">
-                          <SelectValue placeholder="Pilih produk" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(products.data ?? []).map((p) => (
-                            <SelectItem key={String(p["id"])} value={String(p["id"])}>
-                              {String(p["sku"])} — {String(p["name"])}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">HPP {rupiah(hpp, true)}</p>
+                          );
+                        }}
+                        options={(products.data ?? []).map((product) => {
+                          const sku = String(product["sku"] ?? "");
+                          const name = String(product["name"] ?? "Tanpa nama");
+                          return {
+                            value: String(product["id"]),
+                            label: sku ? `${sku} — ${name}` : name,
+                            keywords: `${sku} ${name} ${String(product["variant"] ?? "")}`,
+                          };
+                        })}
+                        placeholder="Pilih produk"
+                        searchPlaceholder="Cari SKU atau nama produk..."
+                        aria-label="Pilih produk"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        HPP {rupiah(l.unit_hpp, true)} · satuan {l.unit}
+                      </p>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Qty</Label>
@@ -485,9 +509,7 @@ export function SalesDocDialog({
           </Button>
           <Button
             disabled={simpan.isPending}
-            onClick={() =>
-              simpan.mutate(undefined as never, { onSuccess: () => onOpenChange(false) })
-            }
+            onClick={() => simpan.mutate(undefined, { onSuccess: () => onOpenChange(false) })}
           >
             {simpan.isPending ? "Menyimpan…" : "Simpan"}
           </Button>
