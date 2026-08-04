@@ -515,6 +515,107 @@ export type Database = {
         }
         Relationships: []
       }
+      costing_ingredients: {
+        Row: {
+          base_cost: number
+          category: string
+          company_id: string
+          costing_version_id: string
+          created_at: string
+          final_cost: number
+          id: string
+          material_id: string | null
+          material_name_snapshot: string
+          normalized_unit_price_snapshot: number
+          notes: string | null
+          purchase_price_snapshot: number
+          purchase_quantity_snapshot: number
+          purchase_unit_snapshot: string
+          required_quantity: number
+          required_unit: string
+          sort_order: number
+          supplier_name_snapshot: string | null
+          supplier_price_id: string | null
+          usage_percentage: number
+          waste_percentage: number
+        }
+        Insert: {
+          base_cost?: number
+          category?: string
+          company_id: string
+          costing_version_id: string
+          created_at?: string
+          final_cost?: number
+          id?: string
+          material_id?: string | null
+          material_name_snapshot: string
+          normalized_unit_price_snapshot?: number
+          notes?: string | null
+          purchase_price_snapshot?: number
+          purchase_quantity_snapshot?: number
+          purchase_unit_snapshot?: string
+          required_quantity?: number
+          required_unit?: string
+          sort_order?: number
+          supplier_name_snapshot?: string | null
+          supplier_price_id?: string | null
+          usage_percentage?: number
+          waste_percentage?: number
+        }
+        Update: {
+          base_cost?: number
+          category?: string
+          company_id?: string
+          costing_version_id?: string
+          created_at?: string
+          final_cost?: number
+          id?: string
+          material_id?: string | null
+          material_name_snapshot?: string
+          normalized_unit_price_snapshot?: number
+          notes?: string | null
+          purchase_price_snapshot?: number
+          purchase_quantity_snapshot?: number
+          purchase_unit_snapshot?: string
+          required_quantity?: number
+          required_unit?: string
+          sort_order?: number
+          supplier_name_snapshot?: string | null
+          supplier_price_id?: string | null
+          usage_percentage?: number
+          waste_percentage?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "costing_ingredients_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "costing_ingredients_costing_version_id_fkey"
+            columns: ["costing_version_id"]
+            isOneToOne: false
+            referencedRelation: "costing_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "costing_ingredients_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "costing_ingredients_supplier_price_id_fkey"
+            columns: ["supplier_price_id"]
+            isOneToOne: false
+            referencedRelation: "material_supplier_prices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       costing_items: {
         Row: {
           category: string
@@ -584,74 +685,396 @@ export type Database = {
           },
         ]
       }
+      costing_moq_simulations: {
+        Row: {
+          actual_margin: number
+          company_id: string
+          costing_version_id: string
+          created_at: string
+          hpp_snapshot: number
+          id: string
+          manual_price: number | null
+          markup_amount: number
+          markup_percentage: number
+          moq_quantity: number
+          price_after_tax: number
+          price_before_tax: number
+          pricing_method: string
+          profit_per_unit: number
+          rounded_price: number
+          rounding_method: string
+          sort_order: number
+          target_margin_percentage: number
+          tax_amount: number
+          tax_percentage: number
+          total_profit: number
+        }
+        Insert: {
+          actual_margin?: number
+          company_id: string
+          costing_version_id: string
+          created_at?: string
+          hpp_snapshot?: number
+          id?: string
+          manual_price?: number | null
+          markup_amount?: number
+          markup_percentage?: number
+          moq_quantity?: number
+          price_after_tax?: number
+          price_before_tax?: number
+          pricing_method?: string
+          profit_per_unit?: number
+          rounded_price?: number
+          rounding_method?: string
+          sort_order?: number
+          target_margin_percentage?: number
+          tax_amount?: number
+          tax_percentage?: number
+          total_profit?: number
+        }
+        Update: {
+          actual_margin?: number
+          company_id?: string
+          costing_version_id?: string
+          created_at?: string
+          hpp_snapshot?: number
+          id?: string
+          manual_price?: number | null
+          markup_amount?: number
+          markup_percentage?: number
+          moq_quantity?: number
+          price_after_tax?: number
+          price_before_tax?: number
+          pricing_method?: string
+          profit_per_unit?: number
+          rounded_price?: number
+          rounding_method?: string
+          sort_order?: number
+          target_margin_percentage?: number
+          tax_amount?: number
+          tax_percentage?: number
+          total_profit?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "costing_moq_simulations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "costing_moq_simulations_costing_version_id_fkey"
+            columns: ["costing_version_id"]
+            isOneToOne: false
+            referencedRelation: "costing_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      costing_operational_costs: {
+        Row: {
+          amount: number
+          calculation_base: string
+          calculation_type: string
+          company_id: string
+          cost_category: string
+          cost_name: string
+          costing_version_id: string
+          created_at: string
+          fixed_value: number
+          id: string
+          notes: string | null
+          percentage_value: number
+          sort_order: number
+        }
+        Insert: {
+          amount?: number
+          calculation_base?: string
+          calculation_type?: string
+          company_id: string
+          cost_category?: string
+          cost_name: string
+          costing_version_id: string
+          created_at?: string
+          fixed_value?: number
+          id?: string
+          notes?: string | null
+          percentage_value?: number
+          sort_order?: number
+        }
+        Update: {
+          amount?: number
+          calculation_base?: string
+          calculation_type?: string
+          company_id?: string
+          cost_category?: string
+          cost_name?: string
+          costing_version_id?: string
+          created_at?: string
+          fixed_value?: number
+          id?: string
+          notes?: string | null
+          percentage_value?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "costing_operational_costs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "costing_operational_costs_costing_version_id_fkey"
+            columns: ["costing_version_id"]
+            isOneToOne: false
+            referencedRelation: "costing_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      costing_packaging_items: {
+        Row: {
+          base_cost: number
+          capacity_quantity: number
+          category: string
+          company_id: string
+          costing_version_id: string
+          created_at: string
+          final_cost: number
+          id: string
+          notes: string | null
+          packaging_material_id: string | null
+          packaging_name_snapshot: string
+          packaging_price_id: string | null
+          sort_order: number
+          supplier_name_snapshot: string | null
+          unit_price_snapshot: number
+          usage_quantity: number
+          usage_unit: string
+          waste_percentage: number
+        }
+        Insert: {
+          base_cost?: number
+          capacity_quantity?: number
+          category?: string
+          company_id: string
+          costing_version_id: string
+          created_at?: string
+          final_cost?: number
+          id?: string
+          notes?: string | null
+          packaging_material_id?: string | null
+          packaging_name_snapshot: string
+          packaging_price_id?: string | null
+          sort_order?: number
+          supplier_name_snapshot?: string | null
+          unit_price_snapshot?: number
+          usage_quantity?: number
+          usage_unit?: string
+          waste_percentage?: number
+        }
+        Update: {
+          base_cost?: number
+          capacity_quantity?: number
+          category?: string
+          company_id?: string
+          costing_version_id?: string
+          created_at?: string
+          final_cost?: number
+          id?: string
+          notes?: string | null
+          packaging_material_id?: string | null
+          packaging_name_snapshot?: string
+          packaging_price_id?: string | null
+          sort_order?: number
+          supplier_name_snapshot?: string | null
+          unit_price_snapshot?: number
+          usage_quantity?: number
+          usage_unit?: string
+          waste_percentage?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "costing_packaging_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "costing_packaging_items_costing_version_id_fkey"
+            columns: ["costing_version_id"]
+            isOneToOne: false
+            referencedRelation: "costing_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "costing_packaging_items_packaging_material_id_fkey"
+            columns: ["packaging_material_id"]
+            isOneToOne: false
+            referencedRelation: "packaging_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "costing_packaging_items_packaging_price_id_fkey"
+            columns: ["packaging_price_id"]
+            isOneToOne: false
+            referencedRelation: "packaging_prices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       costing_versions: {
         Row: {
+          additional_cost: number
+          archived_at: string | null
+          batch_hpp: number
+          brand_id: string | null
           change_reason: string | null
+          client_id: string | null
+          combined_overhead_percentage: number
           company_id: string
           created_at: string
           created_by: string | null
+          direct_labor_cost: number
           effective_at: string | null
+          estimated_reject_percentage: number
+          estimated_shrinkage_percentage: number
+          factory_overhead_cost: number
+          formula_basis: number
+          formula_basis_unit: string
           formula_version_id: string | null
           good_units: number
           id: string
           is_estimated: boolean
+          net_content: number | null
+          net_content_unit: string | null
           notes: string | null
+          output_unit: string
+          overhead_mode: string
           planned_quantity: number
           product_id: string
+          product_variant: string | null
           rejected_units: number
+          rounding_method: string
           shrinkage_units: number
           status: string
+          subtotal_cost: number
+          tax_percentage: number
           total_batch_cost: number
+          total_formula_cost: number
+          total_packaging_cost: number
           unit_hpp: number
           updated_at: string
           version_name: string | null
           version_number: number
         }
         Insert: {
+          additional_cost?: number
+          archived_at?: string | null
+          batch_hpp?: number
+          brand_id?: string | null
           change_reason?: string | null
+          client_id?: string | null
+          combined_overhead_percentage?: number
           company_id: string
           created_at?: string
           created_by?: string | null
+          direct_labor_cost?: number
           effective_at?: string | null
+          estimated_reject_percentage?: number
+          estimated_shrinkage_percentage?: number
+          factory_overhead_cost?: number
+          formula_basis?: number
+          formula_basis_unit?: string
           formula_version_id?: string | null
           good_units?: number
           id?: string
           is_estimated?: boolean
+          net_content?: number | null
+          net_content_unit?: string | null
           notes?: string | null
+          output_unit?: string
+          overhead_mode?: string
           planned_quantity?: number
           product_id: string
+          product_variant?: string | null
           rejected_units?: number
+          rounding_method?: string
           shrinkage_units?: number
           status?: string
+          subtotal_cost?: number
+          tax_percentage?: number
           total_batch_cost?: number
+          total_formula_cost?: number
+          total_packaging_cost?: number
           unit_hpp?: number
           updated_at?: string
           version_name?: string | null
           version_number: number
         }
         Update: {
+          additional_cost?: number
+          archived_at?: string | null
+          batch_hpp?: number
+          brand_id?: string | null
           change_reason?: string | null
+          client_id?: string | null
+          combined_overhead_percentage?: number
           company_id?: string
           created_at?: string
           created_by?: string | null
+          direct_labor_cost?: number
           effective_at?: string | null
+          estimated_reject_percentage?: number
+          estimated_shrinkage_percentage?: number
+          factory_overhead_cost?: number
+          formula_basis?: number
+          formula_basis_unit?: string
           formula_version_id?: string | null
           good_units?: number
           id?: string
           is_estimated?: boolean
+          net_content?: number | null
+          net_content_unit?: string | null
           notes?: string | null
+          output_unit?: string
+          overhead_mode?: string
           planned_quantity?: number
           product_id?: string
+          product_variant?: string | null
           rejected_units?: number
+          rounding_method?: string
           shrinkage_units?: number
           status?: string
+          subtotal_cost?: number
+          tax_percentage?: number
           total_batch_cost?: number
+          total_formula_cost?: number
+          total_packaging_cost?: number
           unit_hpp?: number
           updated_at?: string
           version_name?: string | null
           version_number?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "costing_versions_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "costing_versions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "costing_versions_company_id_fkey"
             columns: ["company_id"]
@@ -897,6 +1320,193 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_supplier_prices: {
+        Row: {
+          company_id: string
+          created_at: string
+          effective_date: string
+          id: string
+          is_override: boolean
+          material_id: string
+          normalized_quantity: number
+          normalized_unit: string
+          normalized_unit_price: number
+          notes: string | null
+          override_reason: string | null
+          purchase_price: number
+          purchase_quantity: number
+          purchase_unit: string
+          supplier_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          is_override?: boolean
+          material_id: string
+          normalized_quantity?: number
+          normalized_unit?: string
+          normalized_unit_price?: number
+          notes?: string | null
+          override_reason?: string | null
+          purchase_price?: number
+          purchase_quantity?: number
+          purchase_unit?: string
+          supplier_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          is_override?: boolean
+          material_id?: string
+          normalized_quantity?: number
+          normalized_unit?: string
+          normalized_unit_price?: number
+          notes?: string | null
+          override_reason?: string | null
+          purchase_price?: number
+          purchase_quantity?: number
+          purchase_unit?: string
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_supplier_prices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_supplier_prices_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_supplier_prices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moq_pricing_templates: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          notes: string | null
+          product_category_id: string | null
+          rounding_method: string
+          tax_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          notes?: string | null
+          product_category_id?: string | null
+          rounding_method?: string
+          tax_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          notes?: string | null
+          product_category_id?: string | null
+          rounding_method?: string
+          tax_percentage?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moq_pricing_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moq_pricing_templates_product_category_id_fkey"
+            columns: ["product_category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moq_pricing_tiers: {
+        Row: {
+          company_id: string
+          created_at: string
+          fixed_profit: number
+          id: string
+          maximum_quantity: number | null
+          minimum_price: number
+          minimum_quantity: number
+          percentage_value: number
+          pricing_method: string
+          sort_order: number
+          template_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          fixed_profit?: number
+          id?: string
+          maximum_quantity?: number | null
+          minimum_price?: number
+          minimum_quantity?: number
+          percentage_value?: number
+          pricing_method?: string
+          sort_order?: number
+          template_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          fixed_profit?: number
+          id?: string
+          maximum_quantity?: number | null
+          minimum_price?: number
+          minimum_quantity?: number
+          percentage_value?: number
+          pricing_method?: string
+          sort_order?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moq_pricing_tiers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moq_pricing_tiers_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "moq_pricing_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -1229,6 +1839,117 @@ export type Database = {
             columns: ["quotation_id"]
             isOneToOne: false
             referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packaging_materials: {
+        Row: {
+          capacity_per_package: number
+          category: string
+          company_id: string
+          created_at: string
+          default_unit: string
+          id: string
+          is_active: boolean
+          minimum_purchase: number | null
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          capacity_per_package?: number
+          category?: string
+          company_id: string
+          created_at?: string
+          default_unit?: string
+          id?: string
+          is_active?: boolean
+          minimum_purchase?: number | null
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capacity_per_package?: number
+          category?: string
+          company_id?: string
+          created_at?: string
+          default_unit?: string
+          id?: string
+          is_active?: boolean
+          minimum_purchase?: number | null
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packaging_materials_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packaging_prices: {
+        Row: {
+          company_id: string
+          created_at: string
+          effective_date: string
+          id: string
+          notes: string | null
+          packaging_material_id: string
+          purchase_price: number
+          purchase_quantity: number
+          supplier_id: string | null
+          unit_price: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          notes?: string | null
+          packaging_material_id: string
+          purchase_price?: number
+          purchase_quantity?: number
+          supplier_id?: string | null
+          unit_price?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          notes?: string | null
+          packaging_material_id?: string
+          purchase_price?: number
+          purchase_quantity?: number
+          supplier_id?: string | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packaging_prices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packaging_prices_packaging_material_id_fkey"
+            columns: ["packaging_material_id"]
+            isOneToOne: false
+            referencedRelation: "packaging_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packaging_prices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -2100,6 +2821,59 @@ export type Database = {
           },
         ]
       }
+      raw_materials: {
+        Row: {
+          category: string
+          company_id: string
+          created_at: string
+          default_unit: string
+          density: number | null
+          density_source: string | null
+          density_unit: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          company_id: string
+          created_at?: string
+          default_unit?: string
+          density?: number | null
+          density_source?: string | null
+          density_unit?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          company_id?: string
+          created_at?: string
+          default_unit?: string
+          density?: number | null
+          density_source?: string | null
+          density_unit?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_materials_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       samples: {
         Row: {
           approval_file_url: string | null
@@ -2185,6 +2959,53 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          company_id: string
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
