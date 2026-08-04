@@ -450,8 +450,8 @@ function HppDetailPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {SATUAN_PRODUK.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>
-                          {s.label}
+                        <SelectItem key={s} value={s}>
+                          {s}
                         </SelectItem>
                       ))}
                     </SelectContent>
