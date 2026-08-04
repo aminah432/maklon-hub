@@ -16,7 +16,7 @@ import { moqBaru, type MoqDraft } from "./hpp-types";
 const METODE = [
   { value: "markup", label: "Markup dari HPP" },
   { value: "target_margin", label: "Target margin" },
-  { value: "manual", label: "Harga manual" },
+  { value: "manual", label: "HNC manual (sebelum PPN)" },
 ];
 
 type Baris = { draft: MoqDraft; hasil: SimulasiMoqResult };
@@ -30,21 +30,27 @@ type Props = {
 
 export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }: Props) {
   const rows = baris.map((b) => b.draft);
+  const acuan = baris[0]?.hasil;
   const set = (key: string, patch: Partial<MoqDraft>) =>
     onChange(rows.map((m) => (m.key === key ? { ...m, ...patch } : m)));
   const hapus = (key: string) => onChange(rows.filter((m) => m.key !== key));
 
   const isiSaran = () =>
     onChange(SARAN_TIER_MOQ.map((t) => moqBaru(t.minimum_quantity, t.percentage_value)));
+  const isiTemplate = () => onChange([moqBaru(Number(rows[0]?.moq_quantity ?? 1000), 100)]);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Simulasi harga jual per tingkat MOQ. Pajak aktif {angka(pajak, 0)}%.
+          Alur template: HPP + markup = HNC, lalu HNC + PPN = harga jual. Pajak aktif{" "}
+          {angka(pajak, 0)}%.
         </p>
         {!readOnly ? (
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={isiTemplate}>
+              Preset template 100%
+            </Button>
             <Button variant="outline" onClick={isiSaran}>
               Isi tier saran
             </Button>
@@ -55,6 +61,21 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
         ) : null}
       </div>
 
+      {acuan ? (
+        <section className="rounded-2xl border border-primary/25 bg-primary/5 p-4">
+          <p className="text-xs font-medium text-muted-foreground">
+            Ringkasan template · baris MOQ pertama
+          </p>
+          <dl className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <Ringkas label="HPP" value={rupiah(acuan.hpp, true)} />
+            <Ringkas label="Nilai markup" value={rupiah(acuan.markupAmount, true)} />
+            <Ringkas label="HNC (sebelum PPN)" value={rupiah(acuan.priceBeforeTax, true)} />
+            <Ringkas label={`PPN ${angka(pajak, 0)}%`} value={rupiah(acuan.taxAmount, true)} />
+            <Ringkas label="Harga termasuk PPN" value={rupiah(acuan.roundedPrice)} strong />
+          </dl>
+        </section>
+      ) : null}
+
       <div className="hidden rounded-2xl border border-border/70 bg-card min-[1700px]:block">
         <div className="max-h-[55vh] overflow-y-auto overflow-x-hidden">
           <table className="w-full min-w-[1320px] border-separate border-spacing-0 text-sm">
@@ -64,12 +85,12 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
                 <th className="w-44">Metode</th>
                 <th className="w-28 text-right">Markup %</th>
                 <th className="w-28 text-right">Margin %</th>
-                <th className="w-40 text-right">Harga manual</th>
+                <th className="w-40 text-right">HNC manual</th>
                 <th className="w-36 text-right">HPP</th>
-                <th className="w-36 text-right">Harga pra-pajak</th>
-                <th className="w-36 text-right">+PPN 11%</th>
-                <th className="w-36 text-right">+PPN 12%</th>
-                <th className="w-36 text-right">Harga final</th>
+                <th className="w-36 text-right">HNC</th>
+                <th className="w-36 text-right">HNC + PPN 11%</th>
+                <th className="w-36 text-right">HNC + PPN 12%</th>
+                <th className="w-36 text-right">Harga termasuk PPN</th>
                 <th className="w-32 text-right">Laba / unit</th>
                 <th className="w-36 text-right">Total laba</th>
                 <th className="w-28 text-right">Margin</th>
@@ -210,7 +231,9 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
               <div>
                 {m.pricing_method === "manual" ? (
                   <>
-                    <Label className="text-xs text-muted-foreground">Harga manual</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      HNC manual (sebelum PPN)
+                    </Label>
                     <CurrencyInput
                       value={m.manual_price}
                       disabled={readOnly}
@@ -229,7 +252,9 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
                   </>
                 ) : (
                   <>
-                    <Label className="text-xs text-muted-foreground">Markup %</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Markup % (margin pada template)
+                    </Label>
                     <PercentageInput
                       value={m.markup_percentage}
                       disabled={readOnly}
@@ -241,7 +266,23 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
             </div>
             <dl className="mt-3 grid grid-cols-1 gap-2 rounded-xl bg-muted/40 p-3 text-xs sm:grid-cols-2">
               <div>
-                <dt className="text-muted-foreground">Harga final</dt>
+                <dt className="text-muted-foreground">HPP</dt>
+                <dd className="num">{rupiah(r.hpp, true)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Nilai markup</dt>
+                <dd className="num">{rupiah(r.markupAmount, true)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">HNC (sebelum PPN)</dt>
+                <dd className="num">{rupiah(r.priceBeforeTax, true)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">PPN aktif ({angka(pajak, 0)}%)</dt>
+                <dd className="num">{rupiah(r.taxAmount, true)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Harga termasuk PPN</dt>
                 <dd className="num text-sm font-semibold">{rupiah(r.roundedPrice)}</dd>
               </div>
               <div>
@@ -249,11 +290,11 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
                 <dd className="num text-sm">{persen(r.actualMargin, 1)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">+PPN 11%</dt>
+                <dt className="text-muted-foreground">HNC + PPN 11%</dt>
                 <dd className="num">{rupiah(r.priceAfterTax11)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">+PPN 12%</dt>
+                <dt className="text-muted-foreground">HNC + PPN 12%</dt>
                 <dd className="num">{rupiah(r.priceAfterTax12)}</dd>
               </div>
               <div>
@@ -268,6 +309,23 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
           </article>
         ))}
       </div>
+    </div>
+  );
+}
+
+function Ringkas({
+  label,
+  value,
+  strong = false,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+}) {
+  return (
+    <div>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className={strong ? "num font-semibold text-primary" : "num font-medium"}>{value}</dd>
     </div>
   );
 }
