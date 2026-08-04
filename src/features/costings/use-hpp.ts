@@ -325,7 +325,7 @@ export function useAktifkanVersi() {
     async (v: {
       id: string;
       productId: string;
-      harga?: { clientPrice: number; hpp: number; companyId: string };
+      harga?: { clientPrice: number; netPrice?: number; hpp: number; companyId: string };
     }) => {
       const lama = await db("costing_versions")
         .update({ status: "digantikan" })
@@ -336,6 +336,7 @@ export function useAktifkanVersi() {
       if (error) throw new Error(error.message);
 
       if (v.harga && v.harga.clientPrice > 0) {
+        const hargaBersih = Number(v.harga.netPrice ?? v.harga.clientPrice);
         const off = await db("product_prices")
           .update({ is_active: false })
           .eq("product_id", v.productId);
@@ -345,14 +346,11 @@ export function useAktifkanVersi() {
           product_id: v.productId,
           costing_version_id: v.id,
           pricing_method: "markup",
-          base_price: v.harga.clientPrice,
+          base_price: hargaBersih,
           minimum_price: v.harga.hpp,
           client_price: v.harga.clientPrice,
           recommended_retail_price: v.harga.clientPrice * 1.6,
-          actual_margin:
-            v.harga.clientPrice > 0
-              ? ((v.harga.clientPrice - v.harga.hpp) / v.harga.clientPrice) * 100
-              : 0,
+          actual_margin: hargaBersih > 0 ? ((hargaBersih - v.harga.hpp) / hargaBersih) * 100 : 0,
           is_active: true,
           notes: "Otomatis dari aktivasi versi HPP",
         });
