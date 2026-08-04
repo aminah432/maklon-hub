@@ -62,7 +62,7 @@ import {
   validasiKalkulasi,
 } from "@/lib/hpp";
 
-export const Route = createFileRoute("/_authenticated/app/costings/$id")({
+export const Route = createFileRoute("/_authenticated/app/costings_/$id")({
   component: HppDetailPage,
   head: () => ({
     meta: [
