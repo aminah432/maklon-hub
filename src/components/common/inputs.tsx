@@ -115,7 +115,9 @@ export function DecimalInput({
         const raw = e.target.value.replace(/[^\d.,-]/g, "");
         setText(raw);
         if (raw.trim() === "") return onChange(null);
-        const n = Number(raw.replace(/\./g, "").replace(",", "."));
+        const n = raw.includes(",")
+          ? Number(raw.replace(/\./g, "").replace(",", "."))
+          : Number(raw);
         if (Number.isFinite(n)) onChange(n);
       }}
       className={cn("num text-right", className)}
