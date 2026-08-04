@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { Calculator, Pencil, Plus, Tag } from "lucide-react";
+import { Calculator, CheckCircle2, Pencil, Plus, Tag } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
@@ -10,6 +10,7 @@ import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/sta
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { RecordFormDialog, type FormValues } from "@/components/common/record-form";
 import { CostingDialog, type ProductOption } from "@/features/costings/costing-dialog";
+import { useAktifkanVersi } from "@/features/costings/use-hpp";
 import { Button } from "@/components/ui/button";
 import { useCompany } from "@/lib/company-context";
 import { db, useAction, useRows, type DbRow } from "@/lib/db";
@@ -54,6 +55,7 @@ function CostingsPage() {
 
   const [formOpen, setFormOpen] = useState(false);
   const [priceFor, setPriceFor] = useState<DbRow | null>(null);
+  const aktifkan = useAktifkanVersi();
 
   const versions = useRows<DbRow>("costing_versions", { scopeId });
   const products = useRows<DbRow>("products", {
@@ -254,21 +256,51 @@ function CostingsPage() {
           }
           actions={(r) => (
             <div className="flex justify-end gap-1">
+              {String(r["status"]) !== "aktif" ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  title="Aktifkan versi"
+                  aria-label="Aktifkan versi"
+                  disabled={aktifkan.isPending || Number(r["unit_hpp"] ?? 0) <= 0}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    aktifkan.mutate({
+                      id: String(r["id"]),
+                      productId: String(r["product_id"]),
+                    });
+                  }}
+                >
+                  <CheckCircle2 className="size-4" aria-hidden />
+                </Button>
+              ) : null}
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
+                title="Atur harga jual"
                 aria-label="Atur harga jual"
-                onClick={() => setPriceFor(r)}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setPriceFor(r);
+                }}
               >
                 <Tag className="size-4" aria-hidden />
               </Button>
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
+                title="Buka editor kalkulasi"
                 aria-label="Buka editor kalkulasi"
-                onClick={() =>
-                  void navigate({ to: "/app/costings/$id", params: { id: String(r["id"]) } })
-                }
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  void navigate({ to: "/app/costings/$id", params: { id: String(r["id"]) } });
+                }}
               >
                 <Pencil className="size-4" aria-hidden />
               </Button>
