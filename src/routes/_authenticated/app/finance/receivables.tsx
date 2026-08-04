@@ -136,7 +136,11 @@ function ReceivablesPage() {
       header: "Sisa tagihan",
       render: (r) => <span className="font-semibold">{rupiah(Number(r["remaining_amount"]))}</span>,
     },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={String(r["status"])} /> },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <StatusBadge status={String(r["status"])} />,
+    },
   ];
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");

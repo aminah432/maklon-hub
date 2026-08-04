@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Mascot, MascotLogo } from "@/components/common/mascot";
 
-
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -27,14 +26,21 @@ export const Route = createFileRoute("/auth")({
 });
 
 const SOROTAN = [
-  { icon: Boxes, title: "Master data terpusat", desc: "Klien, brand, produk, dan HPP dalam satu tempat." },
-  { icon: Factory, title: "Produksi terpantau", desc: "Batch, tahapan, dan quality control real-time." },
+  {
+    icon: Boxes,
+    title: "Master data terpusat",
+    desc: "Klien, brand, produk, dan HPP dalam satu tempat.",
+  },
+  {
+    icon: Factory,
+    title: "Produksi terpantau",
+    desc: "Batch, tahapan, dan quality control real-time.",
+  },
   { icon: BarChart3, title: "KPI instan", desc: "Omzet, laba, piutang, dan invoice jatuh tempo." },
 ];
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"masuk" | "daftar">("masuk");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -44,29 +50,9 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (mode === "masuk") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        navigate({ to: "/app/dashboard", replace: true });
-      } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        toast.success("Pendaftaran berhasil.");
-        if (data.session) {
-          navigate({ to: "/app/dashboard", replace: true });
-        } else {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-          if (signInError) throw signInError;
-          navigate({ to: "/app/dashboard", replace: true });
-        }
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      navigate({ to: "/app/dashboard", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
@@ -97,7 +83,6 @@ function AuthPage() {
             <p className="text-xs opacity-70">Administrasi tiga perusahaan, satu kendali</p>
           </div>
         </div>
-
 
         <div className="relative max-w-lg">
           <h2
@@ -151,14 +136,11 @@ function AuthPage() {
             <span className="text-sm font-semibold text-neutral-700">Maklon Control Center</span>
           </div>
 
-
           <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-            {mode === "masuk" ? "Selamat datang kembali" : "Buat akun baru"}
+            Selamat datang kembali
           </h1>
           <p className="mt-2 text-sm text-neutral-500">
-            {mode === "masuk"
-              ? "Masuk untuk melanjutkan ke dasbor maklon Anda."
-              : "Daftar dan langsung mulai kelola operasional maklon."}
+            Masuk menggunakan akun yang telah diberikan administrator.
           </p>
 
           <form onSubmit={submit} className="mt-8 space-y-4">
@@ -187,7 +169,7 @@ function AuthPage() {
                   type={showPassword ? "text" : "password"}
                   required
                   minLength={6}
-                  autoComplete={mode === "masuk" ? "current-password" : "new-password"}
+                  autoComplete="current-password"
                   placeholder="Minimal 6 karakter"
                   className="h-11 rounded-xl border-neutral-200 bg-white pr-11 text-neutral-900"
                   value={password}
@@ -208,17 +190,13 @@ function AuthPage() {
               </div>
             </div>
             <Button type="submit" className="h-11 w-full rounded-xl" disabled={loading}>
-              {loading ? "Memproses…" : mode === "masuk" ? "Masuk" : "Daftar"}
+              {loading ? "Memproses…" : "Masuk"}
             </Button>
           </form>
 
-          <button
-            type="button"
-            className="mt-6 w-full text-sm text-neutral-500 transition-colors hover:text-neutral-900"
-            onClick={() => setMode(mode === "masuk" ? "daftar" : "masuk")}
-          >
-            {mode === "masuk" ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
-          </button>
+          <p className="mt-6 text-center text-sm text-neutral-500">
+            Belum memiliki akses? Hubungi administrator perusahaan.
+          </p>
         </div>
       </section>
     </div>

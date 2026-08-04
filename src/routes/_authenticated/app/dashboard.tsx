@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import {
@@ -82,8 +82,7 @@ function DashboardPage() {
   const sampai = search.sampai || isoDate(new Date());
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
-  const setRentang = (d: string, s: string) =>
-    navigate({ search: { dari: d, sampai: s } });
+  const setRentang = (d: string, s: string) => navigate({ search: { dari: d, sampai: s } });
 
   const clients = useRows<DbRow>("clients", { scopeId, archived: false });
   const orders = useRows<DbRow>("orders", { scopeId, orderBy: "order_date" });
@@ -103,10 +102,13 @@ function DashboardPage() {
     invoices.isLoading ||
     payments.isLoading;
 
-  const dalam = (v: unknown) => {
-    const t = String(v ?? "").slice(0, 10);
-    return t >= dari && t <= sampai;
-  };
+  const dalam = useCallback(
+    (v: unknown) => {
+      const t = String(v ?? "").slice(0, 10);
+      return t >= dari && t <= sampai;
+    },
+    [dari, sampai],
+  );
 
   const kpi = useMemo(() => {
     const semuaOrder = orders.data ?? [];
@@ -148,7 +150,7 @@ function DashboardPage() {
       kasMasuk,
       orderPeriode,
     };
-  }, [orders.data, items.data, invoices.data, batches.data, payments.data, dari, sampai]);
+  }, [orders.data, items.data, invoices.data, batches.data, payments.data, dalam]);
 
   const seri = useMemo(() => {
     const map = new Map<string, { label: string; omzet: number; kas: number }>();
@@ -161,12 +163,13 @@ function DashboardPage() {
       row[key] += nilai;
       map.set(t, row);
     };
-    for (const o of kpi.orderPeriode) isi(String(o["order_date"]), "omzet", Number(o["grand_total"] ?? 0));
+    for (const o of kpi.orderPeriode)
+      isi(String(o["order_date"]), "omzet", Number(o["grand_total"] ?? 0));
     for (const p of payments.data ?? []) {
       if (dalam(p["payment_date"])) isi(String(p["payment_date"]), "kas", Number(p["amount"] ?? 0));
     }
     return [...map.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
-  }, [kpi.orderPeriode, payments.data, dari, sampai]);
+  }, [kpi.orderPeriode, payments.data, dalam]);
 
   const puncak = seri.reduce((m, r) => Math.max(m, r.omzet), 0);
 
@@ -183,20 +186,34 @@ function DashboardPage() {
     const feeSisa = bf.reduce((s, f) => s + Number(f["remaining_amount"] ?? 0), 0);
 
     const perKlien = new Map<string, number>();
-    for (const p of pr) perKlien.set(String(p["client_id"] ?? "-"), (perKlien.get(String(p["client_id"] ?? "-")) ?? 0) + 1);
+    for (const p of pr)
+      perKlien.set(
+        String(p["client_id"] ?? "-"),
+        (perKlien.get(String(p["client_id"] ?? "-")) ?? 0) + 1,
+      );
     const produkTeratas = [...perKlien.entries()]
       .map(([id, jumlah]) => ({
-        nama: String(kl.find((c) => String(c["id"]) === id)?.["business_name"] ?? kl.find((c) => String(c["id"]) === id)?.["owner_name"] ?? "Tanpa klien"),
+        nama: String(
+          kl.find((c) => String(c["id"]) === id)?.["business_name"] ??
+            kl.find((c) => String(c["id"]) === id)?.["owner_name"] ??
+            "Tanpa klien",
+        ),
         jumlah,
       }))
       .sort((a, b) => b.jumlah - a.jumlah)
       .slice(0, 6);
 
     const perMakelar = new Map<string, number>();
-    for (const f of bf) perMakelar.set(String(f["broker_id"] ?? "-"), (perMakelar.get(String(f["broker_id"] ?? "-")) ?? 0) + Number(f["fee_amount"] ?? 0));
+    for (const f of bf)
+      perMakelar.set(
+        String(f["broker_id"] ?? "-"),
+        (perMakelar.get(String(f["broker_id"] ?? "-")) ?? 0) + Number(f["fee_amount"] ?? 0),
+      );
     const feeTeratas = [...perMakelar.entries()]
       .map(([id, nilai]) => ({
-        nama: String((brokers.data ?? []).find((b) => String(b["id"]) === id)?.["name"] ?? "Lainnya"),
+        nama: String(
+          (brokers.data ?? []).find((b) => String(b["id"]) === id)?.["name"] ?? "Lainnya",
+        ),
         nilai,
       }))
       .filter((r) => r.nilai > 0)
@@ -204,7 +221,8 @@ function DashboardPage() {
       .slice(0, 6);
 
     const statusProduk = new Map<string, number>();
-    for (const p of pr) statusProduk.set(String(p["status"]), (statusProduk.get(String(p["status"])) ?? 0) + 1);
+    for (const p of pr)
+      statusProduk.set(String(p["status"]), (statusProduk.get(String(p["status"])) ?? 0) + 1);
     const komposisiProduk = [...statusProduk.entries()].map(([s, jumlah]) => ({
       nama: labelStatus(s),
       jumlah,
@@ -223,9 +241,15 @@ function DashboardPage() {
       feeTeratas,
       komposisiProduk,
     };
-  }, [clients.data, products.data, brands.data, brokerFees.data, brokers.data, dari, sampai]);
+  }, [clients.data, products.data, brands.data, brokerFees.data, brokers.data, dalam]);
 
-  const WARNA_PIE = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+  const WARNA_PIE = [
+    "var(--chart-1)",
+    "var(--chart-2)",
+    "var(--chart-3)",
+    "var(--chart-4)",
+    "var(--chart-5)",
+  ];
 
   const kartuEkstra = [
     {
@@ -261,8 +285,6 @@ function DashboardPage() {
       tone: "danger" as const,
     },
   ];
-
-
 
   const kartu = [
     {
@@ -326,7 +348,6 @@ function DashboardPage() {
         </div>
       </div>
       <PageHeader
-
         title={sapaan()}
         description={`Ringkasan KPI ${scope} · ${dari === SEMUA ? "seluruh periode" : `${tanggalPendek(dari)} – ${tanggalPendek(sampai)}`}`}
         actions={
@@ -384,7 +405,9 @@ function DashboardPage() {
                       <k.icon className="size-4" aria-hidden />
                     </span>
                   </div>
-                  <p className="num mt-3 truncate text-xl font-bold tracking-tight sm:text-2xl">{k.nilai}</p>
+                  <p className="num mt-3 truncate text-xl font-bold tracking-tight sm:text-2xl">
+                    {k.nilai}
+                  </p>
                   <p className="mt-1 truncate text-xs text-muted-foreground">{k.sub}</p>
                 </FloatingCard>
               </Link>
@@ -424,7 +447,11 @@ function DashboardPage() {
               <p className="text-xs text-muted-foreground">Enam klien dengan produk terbanyak</p>
               <div className="mt-4 h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={ekstra.produkTeratas} layout="vertical" margin={{ left: 8, right: 12 }}>
+                  <BarChart
+                    data={ekstra.produkTeratas}
+                    layout="vertical"
+                    margin={{ left: 8, right: 12 }}
+                  >
                     <defs>
                       <linearGradient id="gKlien" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="var(--chart-2)" stopOpacity={0.35} />
@@ -432,7 +459,13 @@ function DashboardPage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="4 6" horizontal={false} opacity={0.2} />
-                    <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <XAxis
+                      type="number"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                    />
                     <YAxis
                       type="category"
                       dataKey="nama"
@@ -550,8 +583,6 @@ function DashboardPage() {
               </div>
             </section>
           </div>
-
-
 
           <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
             <section className="surface p-5">
@@ -683,7 +714,8 @@ function DashboardPage() {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{String(o["order_number"])}</p>
                       <p className="text-xs text-muted-foreground">
-                        {tanggalPendek(String(o["order_date"]))} · {rupiah(Number(o["grand_total"]))}
+                        {tanggalPendek(String(o["order_date"]))} ·{" "}
+                        {rupiah(Number(o["grand_total"]))}
                       </p>
                     </div>
                     <StatusBadge status={String(o["status"])} />

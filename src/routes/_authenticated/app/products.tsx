@@ -40,7 +40,6 @@ import { useCompany } from "@/lib/company-context";
 import { PRODUCT_STATUSES } from "@/lib/constants";
 import { labelStatus } from "@/lib/format";
 
-
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
   status: fallback(z.string(), "semua").default("semua"),
@@ -95,8 +94,7 @@ function ProductsPage() {
   const { data: brands = [] } = useBrandOptions(scopeId);
   const archive = useArchiveProduct();
 
-  const namaKategori = (id: string | null) =>
-    categories.find((c) => c.id === id)?.name ?? "-";
+  const namaKategori = (id: string | null) => categories.find((c) => c.id === id)?.name ?? "-";
   const namaKlien = (id: string | null) => clients.find((c) => c.id === id)?.name ?? "-";
   const namaBrand = (id: string | null) => brands.find((b) => b.id === id)?.name ?? "-";
 
@@ -230,7 +228,6 @@ function ProductsPage() {
             )
           }
         />
-
       ) : (
         <>
           <div className="hidden overflow-hidden rounded-2xl border border-border/70 bg-card lg:block">
@@ -262,7 +259,10 @@ function ProductsPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <CompanyBadge code={perusahaan?.code ?? null} name={perusahaan?.name ?? null} />
+                        <CompanyBadge
+                          code={perusahaan?.code ?? null}
+                          name={perusahaan?.name ?? null}
+                        />
                       </TableCell>
                       <TableCell>
                         <span className="block">{namaKlien(p.client_id)}</span>
@@ -315,7 +315,10 @@ function ProductsPage() {
                     <div>
                       <dt className="text-xs text-muted-foreground">Perusahaan</dt>
                       <dd>
-                        <CompanyBadge code={perusahaan?.code ?? null} name={perusahaan?.name ?? null} />
+                        <CompanyBadge
+                          code={perusahaan?.code ?? null}
+                          name={perusahaan?.name ?? null}
+                        />
                       </dd>
                     </div>
                     <div>

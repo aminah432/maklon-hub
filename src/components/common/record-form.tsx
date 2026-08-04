@@ -24,14 +24,7 @@ import { CurrencyInput, PercentageInput } from "@/components/common/inputs";
 import { cn } from "@/lib/utils";
 
 export type FieldType =
-  | "text"
-  | "textarea"
-  | "number"
-  | "currency"
-  | "percent"
-  | "date"
-  | "select"
-  | "switch";
+  "text" | "textarea" | "number" | "currency" | "percent" | "date" | "select" | "switch";
 
 export type FieldDef = {
   name: string;
@@ -116,7 +109,10 @@ export function RecordFormDialog({
               return (
                 <div
                   key={f.name}
-                  className={cn("space-y-1.5", (f.full || f.type === "textarea") && "sm:col-span-2")}
+                  className={cn(
+                    "space-y-1.5",
+                    (f.full || f.type === "textarea") && "sm:col-span-2",
+                  )}
                 >
                   <Label htmlFor={id}>
                     {f.label}

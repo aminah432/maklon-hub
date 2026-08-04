@@ -61,7 +61,12 @@ function BrokersPage() {
   const [openFee, setOpenFee] = useState(false);
   const [bayarFee, setBayarFee] = useState<DbRow | null>(null);
 
-  const brokers = useRows<DbRow>("brokers", { scopeId, orderBy: "name", asc: true, archived: false });
+  const brokers = useRows<DbRow>("brokers", {
+    scopeId,
+    orderBy: "name",
+    asc: true,
+    archived: false,
+  });
   const fees = useRows<DbRow>("broker_fees", { scopeId });
   const orders = useRows<DbRow>("orders", { scopeId, orderBy: "order_date" });
   const clients = useRows<DbRow>("clients", { scopeId, orderBy: "owner_name", asc: true });
@@ -181,7 +186,11 @@ function BrokersPage() {
           ? `${Number(r["default_fee_value"])}%`
           : rupiah(Number(r["default_fee_value"])),
     },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={String(r["status"])} /> },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <StatusBadge status={String(r["status"])} />,
+    },
   ];
 
   const kolomFee: Column<DbRow & { id: string }>[] = [
@@ -211,7 +220,11 @@ function BrokersPage() {
       desktopOnly: true,
       render: (r) => tanggalPendek(r["due_date"] ? String(r["due_date"]) : null),
     },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={String(r["status"])} /> },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <StatusBadge status={String(r["status"])} />,
+    },
   ];
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
@@ -272,9 +285,7 @@ function BrokersPage() {
           },
         ]}
         resultLabel={
-          tab === "makelar"
-            ? `${rowsMakelar.length} makelar`
-            : `${rowsFee.length} catatan fee`
+          tab === "makelar" ? `${rowsMakelar.length} makelar` : `${rowsFee.length} catatan fee`
         }
         onReset={() => setSearch({ q: "", status: "semua" })}
       />
@@ -282,9 +293,7 @@ function BrokersPage() {
       {memuat ? (
         <LoadingSkeleton rows={5} />
       ) : gagal ? (
-        <ErrorState
-          onRetry={() => void (tab === "makelar" ? brokers.refetch() : fees.refetch())}
-        />
+        <ErrorState onRetry={() => void (tab === "makelar" ? brokers.refetch() : fees.refetch())} />
       ) : daftarKosong ? (
         <EmptyState
           icon={Handshake}
@@ -360,8 +369,13 @@ function BrokersPage() {
             : { default_fee_type: "persentase", status: "aktif" }
         }
         fields={[
-          { name: "company_id", label: "Perusahaan", type: "select", required: !scopeId,
-            options: companies.map((c) => ({ value: c.id, label: `${c.code} — ${c.name}` })) },
+          {
+            name: "company_id",
+            label: "Perusahaan",
+            type: "select",
+            required: !scopeId,
+            options: companies.map((c) => ({ value: c.id, label: `${c.code} — ${c.name}` })),
+          },
           { name: "name", label: "Nama makelar", required: true },
           { name: "business_name", label: "Nama usaha" },
           { name: "phone", label: "Telepon" },
@@ -385,7 +399,7 @@ function BrokersPage() {
           { name: "notes", label: "Catatan", type: "textarea" },
         ]}
         onSubmit={(values) => {
-          const companyId = scopeId ?? String(values["company_id"] ?? "") ?? "";
+          const companyId = scopeId ?? String(values["company_id"] ?? "");
           simpanMakelar.mutate(
             {
               id: formMakelar ? String(formMakelar["id"]) : null,
@@ -475,7 +489,10 @@ function BrokersPage() {
             label: "Metode",
             type: "select",
             required: true,
-            options: ["transfer", "tunai", "lainnya"].map((v) => ({ value: v, label: labelStatus(v) })),
+            options: ["transfer", "tunai", "lainnya"].map((v) => ({
+              value: v,
+              label: labelStatus(v),
+            })),
           },
           { name: "notes", label: "Catatan", type: "textarea" },
         ]}

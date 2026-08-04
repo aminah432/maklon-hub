@@ -171,9 +171,7 @@ function ProductionPage() {
       const list = (data ?? []) as DbRow[];
       const selesai = list.filter((s) => String(s["status"]) === "selesai").length;
       const persen = list.length > 0 ? Math.round((selesai / list.length) * 100) : 0;
-      await db("production_batches")
-        .update({ progress_percentage: persen })
-        .eq("id", batchId);
+      await db("production_batches").update({ progress_percentage: persen }).eq("id", batchId);
     },
     { invalidate: ["production_stages", "production_batches"], success: "Tahapan diperbarui" },
   );
@@ -265,7 +263,11 @@ function ProductionPage() {
         </div>
       ),
     },
-    { key: "status", header: "Status", render: (r) => <StatusBadge status={String(r["status"])} /> },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <StatusBadge status={String(r["status"])} />,
+    },
   ];
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
@@ -381,9 +383,7 @@ function ProductionPage() {
           { name: "pic", label: "PIC" },
           { name: "notes", label: "Catatan", type: "textarea" },
         ]}
-        onSubmit={(values) =>
-          simpanBatch.mutate(values, { onSuccess: () => setForm(false) })
-        }
+        onSubmit={(values) => simpanBatch.mutate(values, { onSuccess: () => setForm(false) })}
       />
 
       <RecordFormDialog
@@ -419,7 +419,9 @@ function ProductionPage() {
           <DialogHeader className="border-b border-border/70 p-5">
             <DialogTitle>{detail ? String(detail["batch_number"]) : "Detail batch"}</DialogTitle>
             <DialogDescription>
-              {detail ? `${namaProduk(detail["product_id"])} — progres ${Number(detail["progress_percentage"])}%` : ""}
+              {detail
+                ? `${namaProduk(detail["product_id"])} — progres ${Number(detail["progress_percentage"])}%`
+                : ""}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[70vh] p-5">
@@ -464,13 +466,17 @@ function ProductionPage() {
             <h3 className="mt-6 text-sm font-semibold">Hasil QC</h3>
             <div className="mt-2 space-y-2">
               {(checks.data ?? []).map((c) => (
-                <div key={String(c["id"])} className="rounded-xl border border-border/60 p-3 text-sm">
+                <div
+                  key={String(c["id"])}
+                  className="rounded-xl border border-border/60 p-3 text-sm"
+                >
                   <div className="flex items-center justify-between gap-2">
                     <span>{tanggalPendek(String(c["inspection_date"]))}</span>
                     <StatusBadge status={String(c["result"])} />
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Lolos {angka(Number(c["passed_quantity"]))} · Gagal {angka(Number(c["failed_quantity"]))}
+                    Lolos {angka(Number(c["passed_quantity"]))} · Gagal{" "}
+                    {angka(Number(c["failed_quantity"]))}
                   </p>
                 </div>
               ))}

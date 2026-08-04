@@ -1,9 +1,8 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
-import { Bell, LogOut, Menu, Search, User2, X } from "lucide-react";
+import { LogOut, Menu, User2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -15,10 +14,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CompanySwitcher } from "@/components/layout/company-switcher";
+import { GlobalSearch, NotificationCenter } from "@/components/layout/global-tools";
 import { useCompany } from "@/lib/company-context";
 import { logoPerusahaan, skalaLogo } from "@/lib/company-logo";
 import { MascotLogo } from "@/components/common/mascot";
-
 
 import { NAV_ITEMS, MOBILE_NAV } from "@/lib/constants";
 import { inisial, sapaan } from "@/lib/format";
@@ -87,7 +86,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: (() => void) | undefined 
   );
 }
 
-
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
@@ -129,22 +127,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               </SheetContent>
             </Sheet>
 
-            <div className="relative min-w-0">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                aria-hidden
-              />
-              <Input
-                placeholder="Cari klien, produk, atau pesanan"
-                className="h-10 rounded-xl pl-9"
-                aria-label="Pencarian global"
-              />
-            </div>
+            <GlobalSearch />
 
             <div className="flex shrink-0 items-center gap-1">
-              <Button variant="ghost" size="icon" aria-label="Notifikasi">
-                <Bell className="size-5" aria-hidden />
-              </Button>
+              <NotificationCenter />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Menu akun">
@@ -218,9 +204,7 @@ export function PageHeader({
     >
       <div className="min-w-0">
         <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
-        {description ? (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-        ) : null}
+        {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
     </header>

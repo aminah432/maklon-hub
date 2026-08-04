@@ -211,7 +211,6 @@ function ClientsPage() {
             )
           }
         />
-
       ) : (
         <>
           {/* Tabel untuk layar lebar */}
@@ -242,7 +241,10 @@ function ClientsPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <CompanyBadge code={perusahaan?.code ?? null} name={perusahaan?.name ?? null} />
+                        <CompanyBadge
+                          code={perusahaan?.code ?? null}
+                          name={perusahaan?.name ?? null}
+                        />
                       </TableCell>
                       <TableCell className="text-sm">
                         <span className="block">{c.phone ?? "-"}</span>
@@ -298,7 +300,10 @@ function ClientsPage() {
                     <div>
                       <dt className="text-xs text-muted-foreground">Perusahaan</dt>
                       <dd>
-                        <CompanyBadge code={perusahaan?.code ?? null} name={perusahaan?.name ?? null} />
+                        <CompanyBadge
+                          code={perusahaan?.code ?? null}
+                          name={perusahaan?.name ?? null}
+                        />
                       </dd>
                     </div>
                     <div>

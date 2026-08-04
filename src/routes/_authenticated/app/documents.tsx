@@ -46,7 +46,8 @@ export const Route = createFileRoute("/_authenticated/app/documents")({
       { title: "Dokumen — Maklon Control Center" },
       {
         name: "description",
-        content: "Pusat berkas maklon: legalitas, formula, desain kemasan, dan bukti pembayaran tersimpan aman.",
+        content:
+          "Pusat berkas maklon: legalitas, formula, desain kemasan, dan bukti pembayaran tersimpan aman.",
       },
       { property: "og:title", content: "Dokumen — Maklon Control Center" },
       { property: "og:description", content: "Pusat berkas dan legalitas maklon." },
@@ -91,7 +92,7 @@ function DocumentsPage() {
       if (!file) throw new Error("Pilih berkas terlebih dahulu");
       const companyId = scopeId ?? companyPilih;
       if (!companyId) throw new Error("Pilih perusahaan");
-      const path = `${companyId}/${Date.now()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
+      const path = `${companyId}/${Date.now()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
       const up = await supabase.storage.from("dokumen").upload(path, file, { upsert: false });
       if (up.error) throw new Error(up.error.message);
       const { error } = await db("documents").insert({
@@ -141,6 +142,10 @@ function DocumentsPage() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documents.data, clients.data, q, tipe]);
+
+  const uploadClients = (clients.data ?? []).filter(
+    (client) => String(client["company_id"]) === (scopeId ?? companyPilih),
+  );
 
   const columns: Column<DbRow & { id: string }>[] = [
     {
@@ -243,13 +248,21 @@ function DocumentsPage() {
         <DialogContent className="max-w-lg rounded-2xl">
           <DialogHeader>
             <DialogTitle>Unggah dokumen</DialogTitle>
-            <DialogDescription>Berkas tersimpan privat dan diakses lewat tautan aman.</DialogDescription>
+            <DialogDescription>
+              Berkas tersimpan privat dan diakses lewat tautan aman.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {!scopeId ? (
               <div className="space-y-1.5">
                 <Label htmlFor="doc-company">Perusahaan</Label>
-                <Select value={companyPilih} onValueChange={setCompanyPilih}>
+                <Select
+                  value={companyPilih}
+                  onValueChange={(value) => {
+                    setCompanyPilih(value);
+                    setKlien("");
+                  }}
+                >
                   <SelectTrigger id="doc-company" aria-label="Pilih perusahaan">
                     <SelectValue placeholder="Pilih perusahaan" />
                   </SelectTrigger>
@@ -285,7 +298,7 @@ function DocumentsPage() {
                   <SelectValue placeholder="Tanpa klien" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(clients.data ?? []).map((c) => (
+                  {uploadClients.map((c) => (
                     <SelectItem key={String(c["id"])} value={String(c["id"])}>
                       {String(c["owner_name"])}
                     </SelectItem>
@@ -304,9 +317,7 @@ function DocumentsPage() {
             </Button>
             <Button
               disabled={unggah.isPending}
-              onClick={() =>
-                unggah.mutate(undefined as never, { onSuccess: () => setOpen(false) })
-              }
+              onClick={() => unggah.mutate(undefined as never, { onSuccess: () => setOpen(false) })}
             >
               {unggah.isPending ? "Mengunggah…" : "Unggah"}
             </Button>

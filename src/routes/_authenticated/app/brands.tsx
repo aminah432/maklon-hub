@@ -8,7 +8,12 @@ import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/sta
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { FilterBar } from "@/components/common/filter-bar";
 import { BrandFormDialog } from "@/features/brands/brand-form";
-import { BRAND_STATUSES, useArchiveBrand, useBrands, type Brand } from "@/features/brands/use-brands";
+import {
+  BRAND_STATUSES,
+  useArchiveBrand,
+  useBrands,
+  type Brand,
+} from "@/features/brands/use-brands";
 import { useClientOptions } from "@/features/products/use-products";
 import { Button } from "@/components/ui/button";
 import {
@@ -71,7 +76,6 @@ function BrandsPage() {
       search: (prev: BrandSearch) => ({ ...prev, ...patch }),
       replace: true,
     });
-
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Brand | null>(null);
