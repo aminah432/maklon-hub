@@ -54,8 +54,8 @@ export function OperationalCostTable({ biaya, rincian, onChange, readOnly = fals
         ) : null}
       </div>
 
-      <div className="hidden rounded-2xl border border-border/70 bg-card lg:block">
-        <div className="max-h-[50vh] overflow-auto">
+      <div className="hidden rounded-2xl border border-border/70 bg-card min-[1200px]:block">
+        <div className="max-h-[50vh] overflow-y-auto overflow-x-hidden">
           <table className="w-full min-w-[1080px] border-separate border-spacing-0 text-sm">
             <thead className="sticky top-0 z-20 bg-card">
               <tr className="[&>th]:border-b [&>th]:border-border/70 [&>th]:px-3 [&>th]:py-2 [&>th]:text-left [&>th]:font-medium [&>th]:text-muted-foreground">
@@ -185,7 +185,7 @@ export function OperationalCostTable({ biaya, rincian, onChange, readOnly = fals
         </div>
       </div>
 
-      <div className="grid gap-3 lg:hidden">
+      <div className="grid min-w-0 gap-3 min-[1200px]:hidden">
         {biaya.map((b, i) => (
           <article key={b.key} className="rounded-2xl border border-border/70 bg-card p-4">
             <div className="flex items-start justify-between gap-2">
@@ -209,7 +209,7 @@ export function OperationalCostTable({ biaya, rincian, onChange, readOnly = fals
                 </Button>
               ) : null}
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-3">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Label className="text-xs text-muted-foreground">Tipe</Label>
                 <Select
