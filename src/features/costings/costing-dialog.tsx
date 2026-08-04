@@ -178,7 +178,7 @@ export function CostingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[96vh] max-w-[min(96vw,1280px)] overflow-hidden rounded-2xl p-0">
+      <DialogContent className="max-h-[96vh] w-[96vw] max-w-[1280px] overflow-hidden rounded-2xl p-0 min-[1700px]:max-w-[1680px]">
         <DialogHeader className="border-b border-border/70 px-5 py-4">
           <DialogTitle>Buat Versi HPP</DialogTitle>
           <DialogDescription>
@@ -187,10 +187,10 @@ export function CostingDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[76vh] px-5">
-          <div className="space-y-5 py-5">
+        <ScrollArea className="min-w-0 max-h-[76vh] px-4 sm:px-5">
+          <div className="min-w-0 space-y-5 py-5">
             <section className="rounded-2xl border border-border/70 bg-card p-4">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 min-[1700px]:grid-cols-4">
                 <div className="sm:col-span-2">
                   <Label htmlFor="hpp-product">Produk *</Label>
                   <Select value={header.product_id ?? ""} onValueChange={pilihProduk}>
@@ -225,7 +225,7 @@ export function CostingDialog({
                 </div>
                 <div>
                   <Label htmlFor="hpp-net-content">Isi bersih</Label>
-                  <div className="flex gap-2">
+                  <div className="flex min-w-0 gap-2">
                     <DecimalInput
                       id="hpp-net-content"
                       value={header.net_content}
@@ -240,7 +240,7 @@ export function CostingDialog({
                 </div>
                 <div>
                   <Label htmlFor="hpp-formula-basis">Basis formula</Label>
-                  <div className="flex gap-2">
+                  <div className="flex min-w-0 gap-2">
                     <DecimalInput
                       id="hpp-formula-basis"
                       value={header.formula_basis}
@@ -255,7 +255,7 @@ export function CostingDialog({
                 </div>
                 <div>
                   <Label htmlFor="hpp-planned">Jumlah produksi</Label>
-                  <div className="flex gap-2">
+                  <div className="flex min-w-0 gap-2">
                     <QuantityInput
                       id="hpp-planned"
                       value={header.planned_quantity}
@@ -290,12 +290,25 @@ export function CostingDialog({
             </section>
 
             <Tabs defaultValue="formula">
-              <TabsList className="flex h-auto w-full flex-wrap justify-start">
-                <TabsTrigger value="formula">Formula Bahan</TabsTrigger>
-                <TabsTrigger value="packaging">Packaging</TabsTrigger>
-                <TabsTrigger value="production">Biaya Produksi / BTKL / OHP</TabsTrigger>
-                <TabsTrigger value="pricing">Harga & MOQ</TabsTrigger>
-                <TabsTrigger value="history">Riwayat Versi</TabsTrigger>
+              <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:flex sm:flex-wrap sm:justify-start">
+                <TabsTrigger className="min-w-0 px-2 text-xs sm:px-3 sm:text-sm" value="formula">
+                  Formula Bahan
+                </TabsTrigger>
+                <TabsTrigger className="min-w-0 px-2 text-xs sm:px-3 sm:text-sm" value="packaging">
+                  Packaging
+                </TabsTrigger>
+                <TabsTrigger className="min-w-0 px-2 text-xs sm:px-3 sm:text-sm" value="production">
+                  Biaya Produksi / BTKL / OHP
+                </TabsTrigger>
+                <TabsTrigger className="min-w-0 px-2 text-xs sm:px-3 sm:text-sm" value="pricing">
+                  Harga & MOQ
+                </TabsTrigger>
+                <TabsTrigger
+                  className="col-span-2 min-w-0 px-2 text-xs sm:px-3 sm:text-sm"
+                  value="history"
+                >
+                  Riwayat Versi
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="formula" className="mt-4">

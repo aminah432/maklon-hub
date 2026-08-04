@@ -128,9 +128,9 @@ export function FormulaIngredientsTable({
         ) : null}
       </div>
 
-      {/* Desktop: spreadsheet */}
-      <div className="hidden rounded-2xl border border-border/70 bg-card lg:block">
-        <div className="max-h-[60vh] overflow-auto">
+      {/* Spreadsheet hanya dipakai ketika seluruh kolom benar-benar muat. */}
+      <div className="hidden rounded-2xl border border-border/70 bg-card min-[1700px]:block">
+        <div className="max-h-[60vh] overflow-y-auto overflow-x-hidden">
           <table className="w-full min-w-[1500px] border-separate border-spacing-0 text-sm">
             <thead className="sticky top-0 z-20 bg-card">
               <tr className="[&>th]:border-b [&>th]:border-border/70 [&>th]:px-3 [&>th]:py-2 [&>th]:text-left [&>th]:font-medium [&>th]:text-muted-foreground">
@@ -391,8 +391,8 @@ export function FormulaIngredientsTable({
         </div>
       </div>
 
-      {/* Mobile: kartu */}
-      <div className="grid gap-3 lg:hidden">
+      {/* Layout kartu mencegah scroll horizontal pada laptop, tablet, dan ponsel. */}
+      <div className="grid min-w-0 gap-3 min-[1700px]:hidden">
         {bahan.map((b, i) => {
           const dasar = hargaDasarBahan(b);
           const c = hitungBarisBahan(b, formulaBasis);
@@ -425,17 +425,27 @@ export function FormulaIngredientsTable({
                   />
                 </div>
                 {!readOnly ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Hapus bahan ${i + 1}`}
-                    onClick={() => hapus(b.key)}
-                  >
-                    <Trash2 className="size-4 text-destructive" aria-hidden />
-                  </Button>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Duplikasi bahan ${i + 1}`}
+                      onClick={() => duplikat(b.key)}
+                    >
+                      <Copy className="size-4" aria-hidden />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Hapus bahan ${i + 1}`}
+                      onClick={() => hapus(b.key)}
+                    >
+                      <Trash2 className="size-4 text-destructive" aria-hidden />
+                    </Button>
+                  </div>
                 ) : null}
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-xs text-muted-foreground">% Pakai</Label>
                   <DecimalInput
@@ -506,8 +516,24 @@ export function FormulaIngredientsTable({
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Supplier</Label>
+                  <Input
+                    value={b.supplier_name_snapshot}
+                    disabled={readOnly}
+                    onChange={(e) => set(b.key, { supplier_name_snapshot: e.target.value })}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="text-xs text-muted-foreground">Catatan</Label>
+                  <Input
+                    value={b.notes}
+                    disabled={readOnly}
+                    onChange={(e) => set(b.key, { notes: e.target.value })}
+                  />
+                </div>
               </div>
-              <dl className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-muted/40 p-3 text-xs">
+              <dl className="mt-3 grid grid-cols-1 gap-2 rounded-xl bg-muted/40 p-3 text-xs sm:grid-cols-3">
                 <div>
                   <dt className="text-muted-foreground">Harga satuan</dt>
                   <dd className="num">{rupiah(dasar, true)}</dd>
