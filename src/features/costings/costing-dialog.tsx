@@ -239,7 +239,22 @@ export function CostingDialog({
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="hpp-formula-basis">Basis formula</Label>
+                  <div className="flex items-center justify-between gap-2">
+                    <Label htmlFor="hpp-formula-basis">Basis formula / volume produk</Label>
+                    <button
+                      type="button"
+                      className="text-xs text-primary hover:underline disabled:text-muted-foreground"
+                      disabled={!header.net_content}
+                      onClick={() =>
+                        setH({
+                          formula_basis: header.net_content,
+                          formula_basis_unit: header.net_content_unit,
+                        })
+                      }
+                    >
+                      Samakan isi bersih
+                    </button>
+                  </div>
                   <div className="flex min-w-0 gap-2">
                     <DecimalInput
                       id="hpp-formula-basis"
