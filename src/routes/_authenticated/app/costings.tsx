@@ -242,6 +242,9 @@ function CostingsPage() {
         <DataTable
           rows={rows as (DbRow & { id: string })[]}
           columns={columns}
+          onRowClick={(r) =>
+            void navigate({ to: "/app/costings/$id", params: { id: String(r["id"]) } })
+          }
           actions={(r) => (
             <div className="flex justify-end gap-1">
               <Button
@@ -255,17 +258,17 @@ function CostingsPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Ubah versi"
-                onClick={() => {
-                  setEditing(r);
-                  setFormOpen(true);
-                }}
+                aria-label="Buka editor kalkulasi"
+                onClick={() =>
+                  void navigate({ to: "/app/costings/$id", params: { id: String(r["id"]) } })
+                }
               >
                 <Pencil className="size-4" aria-hidden />
               </Button>
             </div>
           )}
         />
+
       )}
 
       <CostingDialog

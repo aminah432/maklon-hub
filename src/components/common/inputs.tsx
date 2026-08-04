@@ -84,6 +84,47 @@ export function PercentageInput({
   );
 }
 
+/** Input desimal presisi tinggi (koma atau titik), menyimpan angka mentah. */
+export function DecimalInput({
+  value,
+  onChange,
+  digits = 6,
+  className,
+  ...rest
+}: BaseProps & { digits?: number }) {
+  const [text, setText] = useState(() =>
+    value === null || value === undefined ? "" : String(value).replace(".", ","),
+  );
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    if (focused) return;
+    if (value === null || value === undefined) return setText("");
+    const dibulatkan = Number(value.toFixed(digits));
+    setText(String(dibulatkan).replace(".", ","));
+  }, [value, focused, digits]);
+
+  return (
+    <Input
+      {...rest}
+      inputMode="decimal"
+      value={text}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      onChange={(e) => {
+        const raw = e.target.value.replace(/[^\d.,-]/g, "");
+        setText(raw);
+        if (raw.trim() === "") return onChange(null);
+        const n = raw.includes(",")
+          ? Number(raw.replace(/\./g, "").replace(",", "."))
+          : Number(raw);
+        if (Number.isFinite(n)) onChange(n);
+      }}
+      className={cn("num text-right", className)}
+    />
+  );
+}
+
 /** Input jumlah bilangan bulat non-negatif. */
 export function QuantityInput({ value, onChange, className, ...rest }: BaseProps) {
   return (
