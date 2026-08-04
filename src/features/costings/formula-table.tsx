@@ -66,7 +66,12 @@ type Props = {
   readOnly?: boolean;
 };
 
-export function FormulaIngredientsTable({ bahan, onChange, formulaBasis, readOnly }: Props) {
+export function FormulaIngredientsTable({
+  bahan,
+  onChange,
+  formulaBasis,
+  readOnly = false,
+}: Props) {
   const total = useMemo(
     () => totalPersentase(bahan.map((b) => ({ usage_percentage: Number(b.usage_percentage ?? 0) }))),
     [bahan],
