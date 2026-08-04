@@ -24,10 +24,10 @@ export interface Q extends PromiseLike<Res<DbRow[] | null>> {
   single: () => PromiseLike<Res<DbRow | null>>;
 }
 
-export const db = (table: string): Q => (supabase.from as unknown as (t: string) => Q)(table);
+export const db = (table: string): Q => supabase.from(table as never) as unknown as Q;
 
 export async function nomorDokumen(companyId: string, docType: string): Promise<string> {
-  const rpc = supabase.rpc as unknown as (
+  const rpc = supabase.rpc.bind(supabase) as unknown as (
     fn: string,
     args: Record<string, unknown>,
   ) => PromiseLike<Res<string | null>>;
