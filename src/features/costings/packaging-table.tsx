@@ -58,7 +58,8 @@ export function PackagingTable({ packaging, onChange, catalog = [], readOnly = f
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Biaya kemasan per unit produk. Gunakan kapasitas untuk kemasan bersama seperti master box.
+          Biaya packaging per unit produk: pemakaian × harga/pcs. Gunakan kapasitas untuk kemasan
+          bersama seperti master box.
         </p>
         {!readOnly ? (
           <Button variant="outline" onClick={() => onChange([...packaging, packagingBaru()])}>
@@ -76,12 +77,12 @@ export function PackagingTable({ packaging, onChange, catalog = [], readOnly = f
                 <th className="w-56">Nama packaging</th>
                 <th className="w-40">Kategori</th>
                 <th className="w-36">Supplier</th>
-                <th className="w-28 text-right">Jumlah</th>
+                <th className="w-28 text-right">Pemakaian</th>
                 <th className="w-28">Satuan</th>
-                <th className="w-40 text-right">Harga satuan</th>
-                <th className="w-28 text-right">Kapasitas</th>
+                <th className="w-40 text-right">Harga/pcs</th>
+                <th className="w-28 text-right">Kapasitas isi</th>
                 <th className="w-24 text-right">Waste %</th>
-                <th className="w-36 text-right">Biaya / unit</th>
+                <th className="w-36 text-right">Biaya packaging</th>
                 <th className="w-28 text-right">Aksi</th>
               </tr>
             </thead>
@@ -290,7 +291,7 @@ export function PackagingTable({ packaging, onChange, catalog = [], readOnly = f
               </div>
               <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Jumlah</Label>
+                  <Label className="text-xs text-muted-foreground">Pemakaian</Label>
                   <DecimalInput
                     value={p.usage_quantity}
                     disabled={readOnly}
@@ -298,7 +299,7 @@ export function PackagingTable({ packaging, onChange, catalog = [], readOnly = f
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Harga satuan</Label>
+                  <Label className="text-xs text-muted-foreground">Harga/pcs</Label>
                   <CurrencyInput
                     value={p.unit_price_snapshot}
                     disabled={readOnly}
@@ -306,7 +307,7 @@ export function PackagingTable({ packaging, onChange, catalog = [], readOnly = f
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Kapasitas</Label>
+                  <Label className="text-xs text-muted-foreground">Kapasitas isi</Label>
                   <DecimalInput
                     value={p.capacity_quantity}
                     disabled={readOnly}
