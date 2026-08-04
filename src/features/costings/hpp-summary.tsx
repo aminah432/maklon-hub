@@ -63,8 +63,14 @@ export function HppSummaryCard({
             value={`${rupiah(hasil.totalPackaging, true)} · ${persen(kontribusi(hasil.totalPackaging), 1)}`}
           />
           <Baris label="Subtotal" value={rupiah(hasil.subtotal, true)} muted />
-          <Baris label="BTKL" value={rupiah(hasil.btkl, true)} />
-          <Baris label="OHP" value={rupiah(hasil.ohp, true)} />
+          {hasil.combinedBtklOhp > 0 ? (
+            <Baris label="BTKL + OHP" value={rupiah(hasil.combinedBtklOhp, true)} />
+          ) : (
+            <>
+              <Baris label="BTKL" value={rupiah(hasil.btkl, true)} />
+              <Baris label="OHP" value={rupiah(hasil.ohp, true)} />
+            </>
+          )}
           <Baris label="Biaya tambahan" value={rupiah(hasil.biayaTambahan, true)} />
           {hasil.lossAdjustment > 0 ? (
             <Baris label="Dampak reject & penyusutan" value={rupiah(hasil.lossAdjustment, true)} />
