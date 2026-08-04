@@ -55,8 +55,8 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
         ) : null}
       </div>
 
-      <div className="hidden rounded-2xl border border-border/70 bg-card lg:block">
-        <div className="max-h-[55vh] overflow-auto">
+      <div className="hidden rounded-2xl border border-border/70 bg-card min-[1700px]:block">
+        <div className="max-h-[55vh] overflow-y-auto overflow-x-hidden">
           <table className="w-full min-w-[1320px] border-separate border-spacing-0 text-sm">
             <thead className="sticky top-0 z-20 bg-card">
               <tr className="[&>th]:border-b [&>th]:border-border/70 [&>th]:px-3 [&>th]:py-2 [&>th]:text-left [&>th]:font-medium [&>th]:text-muted-foreground">
@@ -164,7 +164,7 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
         </div>
       </div>
 
-      <div className="grid gap-3 lg:hidden">
+      <div className="grid min-w-0 gap-3 min-[1700px]:hidden">
         {baris.map(({ draft: m, hasil: r }, i) => (
           <article key={m.key} className="rounded-2xl border border-border/70 bg-card p-4">
             <div className="flex items-start justify-between gap-2">
@@ -187,7 +187,7 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
                 </Button>
               ) : null}
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-3">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Label className="text-xs text-muted-foreground">Metode</Label>
                 <Select
@@ -239,7 +239,7 @@ export function MoqSimulationTable({ baris, onChange, pajak, readOnly = false }:
                 )}
               </div>
             </div>
-            <dl className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-muted/40 p-3 text-xs">
+            <dl className="mt-3 grid grid-cols-1 gap-2 rounded-xl bg-muted/40 p-3 text-xs sm:grid-cols-2">
               <div>
                 <dt className="text-muted-foreground">Harga final</dt>
                 <dd className="num text-sm font-semibold">{rupiah(r.roundedPrice)}</dd>
