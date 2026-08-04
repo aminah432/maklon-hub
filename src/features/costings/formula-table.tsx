@@ -138,15 +138,15 @@ export function FormulaIngredientsTable({
                 <th className="sticky left-14 z-30 w-56 bg-card">Nama bahan</th>
                 <th className="w-40">Kategori</th>
                 <th className="w-36">Supplier</th>
-                <th className="w-28 text-right">% Pakai</th>
-                <th className="w-40 text-right">Harga beli</th>
-                <th className="w-24 text-right">Isi</th>
-                <th className="w-28">Satuan</th>
-                <th className="w-36 text-right">Harga /kg-L</th>
-                <th className="w-36 text-right">Harga /g-ml</th>
-                <th className="w-36 text-right">Kebutuhan</th>
+                <th className="w-28 text-right">Pemakaian (%)</th>
+                <th className="w-40 text-right">Harga supplier</th>
+                <th className="w-24 text-right">Isi pembelian</th>
+                <th className="w-28">Satuan beli</th>
+                <th className="w-36 text-right">Harga/kg/L</th>
+                <th className="w-36 text-right">Harga/g/ml</th>
+                <th className="w-36 text-right">Volume / kebutuhan</th>
                 <th className="w-24 text-right">Waste %</th>
-                <th className="w-36 text-right">Biaya bahan</th>
+                <th className="w-36 text-right">Biaya formula</th>
                 <th className="w-40">Catatan</th>
                 <th className="w-28 text-right">Aksi</th>
               </tr>
@@ -447,7 +447,7 @@ export function FormulaIngredientsTable({
               </div>
               <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <Label className="text-xs text-muted-foreground">% Pakai</Label>
+                  <Label className="text-xs text-muted-foreground">Pemakaian (%)</Label>
                   <DecimalInput
                     value={b.usage_percentage}
                     disabled={readOnly}
@@ -463,7 +463,7 @@ export function FormulaIngredientsTable({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Harga beli</Label>
+                  <Label className="text-xs text-muted-foreground">Harga supplier</Label>
                   <CurrencyInput
                     value={b.purchase_price_snapshot}
                     disabled={readOnly}
@@ -479,7 +479,7 @@ export function FormulaIngredientsTable({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Satuan</Label>
+                  <Label className="text-xs text-muted-foreground">Satuan pembelian</Label>
                   <Select
                     value={b.purchase_unit_snapshot}
                     disabled={readOnly}
@@ -533,17 +533,24 @@ export function FormulaIngredientsTable({
                   />
                 </div>
               </div>
-              <dl className="mt-3 grid grid-cols-1 gap-2 rounded-xl bg-muted/40 p-3 text-xs sm:grid-cols-3">
+              <dl className="mt-3 grid grid-cols-1 gap-2 rounded-xl bg-muted/40 p-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <dt className="text-muted-foreground">Harga satuan</dt>
+                  <dt className="text-muted-foreground">Harga/kg/L</dt>
+                  <dd className="num">{rupiah(hargaPerSatuanBesar(dasar), true)}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Harga/g/ml</dt>
                   <dd className="num">{rupiah(dasar, true)}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Kebutuhan</dt>
-                  <dd className="num">{angka(c.requiredQuantity, 4)}</dd>
+                  <dt className="text-muted-foreground">Volume / kebutuhan</dt>
+                  <dd className="num">
+                    {angka(c.requiredQuantity, 4)}{" "}
+                    <SatuanDasarLabel unit={b.purchase_unit_snapshot} />
+                  </dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Biaya</dt>
+                  <dt className="text-muted-foreground">Biaya formula</dt>
                   <dd className="num font-medium">{rupiah(c.finalCost, true)}</dd>
                 </div>
               </dl>
