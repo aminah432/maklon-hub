@@ -18,6 +18,8 @@ import {
 import { PageHeader } from "@/components/layout/app-shell";
 import { FloatingCard } from "@/components/common/floating-card";
 import { LoadingSkeleton } from "@/components/common/states";
+import { ExportMenuSections } from "@/components/common/export-menu";
+import { slugFile, type SectionDoc } from "@/lib/export";
 import { useCompany } from "@/lib/company-context";
 import { useRows, type DbRow } from "@/lib/db";
 import { angka, labelStatus, rupiah } from "@/lib/format";
@@ -113,9 +115,60 @@ function ReportsPage() {
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
+  const dokumenLaporan = (): SectionDoc => ({
+    title: "Laporan Kinerja Bisnis",
+    subtitle: scope,
+    fileName: slugFile(`laporan-${scope}`),
+    meta: [
+      { label: "Jumlah pesanan", value: String((orders.data ?? []).length) },
+      { label: "Batch produksi", value: String((batches.data ?? []).length) },
+    ],
+    sections: [
+      {
+        heading: "Omzet vs kas masuk per bulan",
+        columns: [
+          { header: "Bulan" },
+          { header: "Omzet", align: "right" },
+          { header: "Kas masuk", align: "right" },
+          { header: "Selisih", align: "right" },
+        ],
+        rows: penjualanBulanan.map((b) => [
+          b.bulan,
+          rupiah(b.omzet),
+          rupiah(b.bayar),
+          rupiah(b.omzet - b.bayar),
+        ]),
+      },
+      {
+        heading: "Produk dengan nilai penjualan tertinggi",
+        columns: [
+          { header: "Produk" },
+          { header: "Nilai penjualan", align: "right" },
+        ],
+        rows: produkTeratas.map((p) => [p.nama, rupiah(p.nilai)]),
+      },
+      {
+        heading: "Distribusi status batch produksi",
+        columns: [{ header: "Status" }, { header: "Jumlah batch", align: "right" }],
+        rows: statusProduksi.map((s) => [s.status, angka(s.jumlah)]),
+      },
+    ],
+    summary: [
+      { label: "Total omzet", value: rupiah(totalOmzet) },
+      { label: "Kas masuk", value: rupiah(totalBayar) },
+      { label: "Estimasi laba", value: rupiah(totalLaba) },
+      { label: "Unit lolos QC", value: angka(totalUnit) },
+      { label: "Sisa tagihan", value: rupiah(Math.max(totalOmzet - totalBayar, 0)) },
+    ],
+  });
+
   return (
     <>
-      <PageHeader title="Laporan" description={`Ringkasan kinerja bisnis — ${scope}`} />
+      <PageHeader
+        title="Laporan"
+        description={`Ringkasan kinerja bisnis — ${scope}`}
+        actions={<ExportMenuSections doc={dokumenLaporan} />}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <FloatingCard>
