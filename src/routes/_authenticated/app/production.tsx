@@ -288,8 +288,16 @@ function ProductionPage() {
       { header: "Produk", value: (r) => namaProduk(r["product_id"]) },
       { header: "Pesanan", value: (r) => nomorPesanan(r["order_id"]) },
       { header: "Perusahaan", value: (r) => companyById(String(r["company_id"]))?.code ?? "-" },
-      { header: "Rencana (unit)", value: (r) => angka(Number(r["planned_quantity"])), align: "right" },
-      { header: "Lolos QC (unit)", value: (r) => angka(Number(r["passed_quantity"])), align: "right" },
+      {
+        header: "Rencana (unit)",
+        value: (r) => angka(Number(r["planned_quantity"])),
+        align: "right",
+      },
+      {
+        header: "Lolos QC (unit)",
+        value: (r) => angka(Number(r["passed_quantity"])),
+        align: "right",
+      },
       {
         header: "Mulai",
         value: (r) => tanggalPendek(r["scheduled_start"] ? String(r["scheduled_start"]) : null),

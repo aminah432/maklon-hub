@@ -167,7 +167,11 @@ function ReceivablesPage() {
         header: "Umur",
         value: (r) => LABEL_EMBER[ember(r["due_date"] ? selisihHari(String(r["due_date"])) : 0)],
       },
-      { header: "Sisa tagihan", value: (r) => rupiah(Number(r["remaining_amount"])), align: "right" },
+      {
+        header: "Sisa tagihan",
+        value: (r) => rupiah(Number(r["remaining_amount"])),
+        align: "right",
+      },
       { header: "Status", value: (r) => labelStatus(String(r["status"])) },
     ],
     rows,

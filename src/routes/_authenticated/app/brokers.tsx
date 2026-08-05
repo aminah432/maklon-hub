@@ -307,18 +307,18 @@ function BrokersPage() {
           <>
             <ExportMenu doc={dokumenEkspor} />
             {tab === "makelar" ? (
-            <Button
-              onClick={() => {
-                setFormMakelar(null);
-                setOpenMakelar(true);
-              }}
-            >
-              <Plus className="size-4" aria-hidden /> Tambah Makelar
-            </Button>
-          ) : (
-            <Button onClick={() => setOpenFee(true)}>
-              <Plus className="size-4" aria-hidden /> Catat Fee
-            </Button>
+              <Button
+                onClick={() => {
+                  setFormMakelar(null);
+                  setOpenMakelar(true);
+                }}
+              >
+                <Plus className="size-4" aria-hidden /> Tambah Makelar
+              </Button>
+            ) : (
+              <Button onClick={() => setOpenFee(true)}>
+                <Plus className="size-4" aria-hidden /> Catat Fee
+              </Button>
             )}
           </>
         }

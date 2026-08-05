@@ -141,10 +141,7 @@ function ReportsPage() {
       },
       {
         heading: "Produk dengan nilai penjualan tertinggi",
-        columns: [
-          { header: "Produk" },
-          { header: "Nilai penjualan", align: "right" },
-        ],
+        columns: [{ header: "Produk" }, { header: "Nilai penjualan", align: "right" }],
         rows: produkTeratas.map((p) => [p.nama, rupiah(p.nilai)]),
       },
       {
