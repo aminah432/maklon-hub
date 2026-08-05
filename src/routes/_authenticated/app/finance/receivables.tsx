@@ -6,13 +6,15 @@ import { HandCoins } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { FloatingCard } from "@/components/common/floating-card";
 import { Badge } from "@/components/ui/badge";
 import { useCompany } from "@/lib/company-context";
 import { useRows, type DbRow } from "@/lib/db";
-import { rupiah, selisihHari, tanggalPendek } from "@/lib/format";
+import { labelStatus, rupiah, selisihHari, tanggalPendek } from "@/lib/format";
 
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -145,9 +147,48 @@ function ReceivablesPage() {
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
+  const dokumenEkspor = (): ExportDoc<DbRow> => ({
+    title: "Laporan Piutang",
+    subtitle: scope,
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Umur", value: umur === "semua" ? "Semua" : (LABEL_EMBER[umur] ?? umur) },
+    ],
+    columns: [
+      { header: "Invoice", value: (r) => String(r["invoice_number"] ?? "-") },
+      { header: "Klien", value: (r) => namaKlien(r["client_id"]) },
+      { header: "Perusahaan", value: (r) => companyById(String(r["company_id"]))?.code ?? "-" },
+      {
+        header: "Jatuh tempo",
+        value: (r) => tanggalPendek(r["due_date"] ? String(r["due_date"]) : null),
+      },
+      {
+        header: "Umur",
+        value: (r) => LABEL_EMBER[ember(r["due_date"] ? selisihHari(String(r["due_date"])) : 0)],
+      },
+      {
+        header: "Sisa tagihan",
+        value: (r) => rupiah(Number(r["remaining_amount"])),
+        align: "right",
+      },
+      { header: "Status", value: (r) => labelStatus(String(r["status"])) },
+    ],
+    rows,
+    summary: [
+      { label: "Total piutang", value: rupiah(total) },
+      { label: "Sudah jatuh tempo", value: rupiah(jatuhTempo) },
+      { label: "Invoice terbuka", value: String(belum.length) },
+    ],
+  });
+
   return (
     <>
-      <PageHeader title="Piutang" description={`Tagihan belum lunas — ${scope}`} />
+      <PageHeader
+        title="Piutang"
+        description={`Tagihan belum lunas — ${scope}`}
+        actions={<ExportMenu doc={dokumenEkspor} />}
+      />
 
       <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <FloatingCard>

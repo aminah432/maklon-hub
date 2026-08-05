@@ -6,6 +6,8 @@ import { Calculator, CheckCircle2, Pencil, Plus, Tag } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { RecordFormDialog, type FormValues } from "@/components/common/record-form";
@@ -15,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { useCompany } from "@/lib/company-context";
 import { db, useAction, useRows, type DbRow } from "@/lib/db";
 import { hargaMarkup, hargaTargetMargin } from "@/lib/calc";
-import { angka, rupiah, tanggalPendek } from "@/lib/format";
+import { angka, labelStatus, rupiah, tanggalPendek } from "@/lib/format";
 
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -174,6 +176,34 @@ function CostingsPage() {
   ];
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
+
+  const dokumenEkspor = (): ExportDoc<DbRow> => ({
+    title: "Daftar Versi Kalkulasi HPP",
+    subtitle: scope,
+    orientation: "landscape",
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+    ],
+    columns: [
+      { header: "Produk", value: (r) => namaProduk(r["product_id"]) },
+      { header: "Versi", value: (r) => `v${String(r["version_number"])}` },
+      { header: "Nama versi", value: (r) => String(r["version_name"] ?? "-") },
+      { header: "Perusahaan", value: (r) => companyById(String(r["company_id"]))?.code ?? "-" },
+      { header: "Batch", value: (r) => angka(Number(r["planned_quantity"])), align: "right" },
+      { header: "Layak jual", value: (r) => angka(Number(r["good_units"])), align: "right" },
+      {
+        header: "Total biaya",
+        value: (r) => rupiah(Number(r["total_batch_cost"])),
+        align: "right",
+      },
+      { header: "HPP / unit", value: (r) => rupiah(Number(r["unit_hpp"]), true), align: "right" },
+      { header: "Status", value: (r) => labelStatus(String(r["status"])) },
+      { header: "Dibuat", value: (r) => tanggalPendek(String(r["created_at"])) },
+    ],
+    rows,
+  });
   const adaFilter = q.trim() !== "" || status !== "semua" || produk !== "semua";
 
   return (
@@ -182,13 +212,16 @@ function CostingsPage() {
         title="Kalkulasi HPP"
         description={`Versi perhitungan biaya produksi — ${scope}`}
         actions={
-          <Button
-            onClick={() => {
-              setFormOpen(true);
-            }}
-          >
-            <Plus className="size-4" aria-hidden /> Versi HPP
-          </Button>
+          <>
+            <ExportMenu doc={dokumenEkspor} />
+            <Button
+              onClick={() => {
+                setFormOpen(true);
+              }}
+            >
+              <Plus className="size-4" aria-hidden /> Versi HPP
+            </Button>
+          </>
         }
       />
 

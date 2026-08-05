@@ -6,6 +6,8 @@ import { ClipboardList, MoreHorizontal, Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { SalesDocDialog } from "@/features/sales/sales-doc-dialog";
@@ -195,15 +197,47 @@ function QuotationsPage() {
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
+  const dokumenEkspor = (): ExportDoc<DbRow> => ({
+    title: "Daftar Penawaran",
+    subtitle: scope,
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+    ],
+    columns: [
+      { header: "Nomor", value: (r) => String(r["quotation_number"] ?? "-") },
+      { header: "Klien", value: (r) => namaKlien(r["client_id"]) },
+      { header: "Perusahaan", value: (r) => companyById(String(r["company_id"]))?.code ?? "-" },
+      { header: "Tanggal", value: (r) => tanggalPendek(String(r["quotation_date"])) },
+      {
+        header: "Berlaku",
+        value: (r) => tanggalPendek(r["valid_until"] ? String(r["valid_until"]) : null),
+      },
+      { header: "Total", value: (r) => rupiah(Number(r["grand_total"])), align: "right" },
+      { header: "Status", value: (r) => labelStatus(String(r["status"])) },
+    ],
+    rows,
+    summary: [
+      {
+        label: "Total nilai penawaran",
+        value: rupiah(rows.reduce((s, r) => s + Number(r["grand_total"] ?? 0), 0)),
+      },
+    ],
+  });
+
   return (
     <>
       <PageHeader
         title="Penawaran"
         description={`Penawaran harga ke klien — ${scope}`}
         actions={
-          <Button onClick={() => setOpen(true)}>
-            <Plus className="size-4" aria-hidden /> Buat Penawaran
-          </Button>
+          <>
+            <ExportMenu doc={dokumenEkspor} />
+            <Button onClick={() => setOpen(true)}>
+              <Plus className="size-4" aria-hidden /> Buat Penawaran
+            </Button>
+          </>
         }
       />
 

@@ -6,6 +6,8 @@ import { Wallet } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { FloatingCard } from "@/components/common/floating-card";
@@ -114,9 +116,40 @@ function PaymentsPage() {
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
+  const dokumenEkspor = (): ExportDoc<DbRow> => ({
+    title: "Riwayat Pembayaran",
+    subtitle: scope,
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Metode", value: metode === "semua" ? "Semua" : labelStatus(metode) },
+    ],
+    columns: [
+      { header: "Tanggal", value: (r) => tanggalPendek(String(r["payment_date"])) },
+      { header: "Klien", value: (r) => namaKlien(r["client_id"]) },
+      { header: "Invoice", value: (r) => nomorInvoice(r["invoice_id"]) },
+      { header: "Perusahaan", value: (r) => companyById(String(r["company_id"]))?.code ?? "-" },
+      { header: "Jumlah", value: (r) => rupiah(Number(r["amount"])), align: "right" },
+      { header: "Metode", value: (r) => labelStatus(String(r["method"])) },
+      { header: "Bank", value: (r) => String(r["bank_destination"] ?? "-") },
+      { header: "Referensi", value: (r) => String(r["reference_number"] ?? "-") },
+      { header: "Verifikasi", value: (r) => labelStatus(String(r["verification_status"])) },
+    ],
+    rows,
+    summary: [
+      { label: "Total pembayaran", value: rupiah(totalMasuk) },
+      { label: "Bulan berjalan", value: rupiah(bulanIni) },
+      { label: "Jumlah transaksi", value: String(rows.length) },
+    ],
+  });
+
   return (
     <>
-      <PageHeader title="Pembayaran" description={`Kas masuk dari klien — ${scope}`} />
+      <PageHeader
+        title="Pembayaran"
+        description={`Kas masuk dari klien — ${scope}`}
+        actions={<ExportMenu doc={dokumenEkspor} />}
+      />
 
       <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <FloatingCard>

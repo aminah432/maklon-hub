@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge } from "@/components/common/status-badge";
 import { Button } from "@/components/ui/button";
@@ -181,15 +183,37 @@ function DocumentsPage() {
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
+  const dokumenEkspor = (): ExportDoc<DbRow> => ({
+    title: "Daftar Dokumen",
+    subtitle: scope,
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Jenis", value: tipe === "semua" ? "Semua" : tipe },
+    ],
+    columns: [
+      { header: "Berkas", value: (r) => String(r["file_name"] ?? "-") },
+      { header: "Jenis", value: (r) => String(r["document_type"] ?? "-") },
+      { header: "Klien", value: (r) => namaKlien(r["client_id"]) },
+      { header: "Perusahaan", value: (r) => companyById(String(r["company_id"]))?.code ?? "-" },
+      { header: "Ukuran", value: (r) => ukuran(Number(r["file_size"] ?? 0)), align: "right" },
+      { header: "Diunggah", value: (r) => tanggalPendek(String(r["created_at"])) },
+    ],
+    rows,
+  });
+
   return (
     <>
       <PageHeader
         title="Dokumen"
         description={`Pusat berkas dan legalitas — ${scope}`}
         actions={
-          <Button onClick={() => setOpen(true)}>
-            <Upload className="size-4" aria-hidden /> Unggah Dokumen
-          </Button>
+          <>
+            <ExportMenu doc={dokumenEkspor} />
+            <Button onClick={() => setOpen(true)}>
+              <Upload className="size-4" aria-hidden /> Unggah Dokumen
+            </Button>
+          </>
         }
       />
 

@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { ProductFormDialog } from "@/features/products/product-form";
 import { CategoryManagerDialog } from "@/features/products/category-manager";
 import {
@@ -113,6 +115,29 @@ function ProductsPage() {
   }, [data, q, status, kategori, klien, brand]);
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
+
+  const dokumenEkspor = (): ExportDoc<Product> => ({
+    title: arsip ? "Arsip Produk Maklon" : "Katalog Produk Maklon",
+    subtitle: scope,
+    orientation: "landscape",
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+    ],
+    columns: [
+      { header: "SKU", value: (p) => p.sku ?? "-" },
+      { header: "Produk", value: (p) => p.name ?? "-" },
+      { header: "Varian", value: (p) => p.variant ?? "-" },
+      { header: "Kategori", value: (p) => namaKategori(p.category_id) },
+      { header: "Klien", value: (p) => namaKlien(p.client_id) },
+      { header: "Brand", value: (p) => namaBrand(p.brand_id) },
+      { header: "Kemasan", value: (p) => p.packaging_type ?? "-" },
+      { header: "Perusahaan", value: (p) => companyById(p.company_id)?.code ?? "-" },
+      { header: "Status", value: (p) => labelStatus(p.status) },
+    ],
+    rows,
+  });
   const adaFilter =
     q.trim() !== "" ||
     status !== "semua" ||
@@ -129,6 +154,7 @@ function ProductsPage() {
         description={`Katalog produk — ${scope}`}
         actions={
           <>
+            <ExportMenu doc={dokumenEkspor} />
             <Button variant="outline" onClick={() => setCategoryOpen(true)}>
               <Tags className="size-4" aria-hidden /> Kategori
             </Button>

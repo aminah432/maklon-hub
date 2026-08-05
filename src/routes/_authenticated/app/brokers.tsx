@@ -6,6 +6,8 @@ import { Handshake, MoreHorizontal, Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { RecordFormDialog, type FormValues } from "@/components/common/record-form";
@@ -228,6 +230,70 @@ function BrokersPage() {
   ];
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
+
+  const dokumenEkspor = (): ExportDoc<DbRow> =>
+    tab === "makelar"
+      ? {
+          title: "Daftar Makelar",
+          subtitle: scope,
+          meta: [
+            { label: "Total baris", value: String(rowsMakelar.length) },
+            { label: "Pencarian", value: q.trim() || "-" },
+            { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+          ],
+          columns: [
+            { header: "Makelar", value: (r) => String(r["name"] ?? "-") },
+            { header: "Usaha", value: (r) => String(r["business_name"] ?? "-") },
+            { header: "Kota", value: (r) => String(r["city"] ?? "-") },
+            { header: "Kontak", value: (r) => String(r["phone"] ?? "-") },
+            {
+              header: "Perusahaan",
+              value: (r) => companyById(String(r["company_id"]))?.code ?? "-",
+            },
+            {
+              header: "Fee default",
+              value: (r) =>
+                String(r["default_fee_type"]) === "persentase"
+                  ? `${Number(r["default_fee_value"])}%`
+                  : rupiah(Number(r["default_fee_value"])),
+              align: "right",
+            },
+            { header: "Status", value: (r) => labelStatus(String(r["status"])) },
+          ],
+          rows: rowsMakelar,
+        }
+      : {
+          title: "Daftar Fee Makelar",
+          subtitle: scope,
+          meta: [
+            { label: "Total baris", value: String(rowsFee.length) },
+            { label: "Pencarian", value: q.trim() || "-" },
+            { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+          ],
+          columns: [
+            { header: "Makelar", value: (r) => namaMakelar(r["broker_id"]) },
+            { header: "Tipe fee", value: (r) => labelStatus(String(r["fee_type"])) },
+            { header: "Fee", value: (r) => rupiah(Number(r["fee_amount"])), align: "right" },
+            { header: "Dibayar", value: (r) => rupiah(Number(r["paid_amount"])), align: "right" },
+            { header: "Sisa", value: (r) => rupiah(Number(r["remaining_amount"])), align: "right" },
+            {
+              header: "Jatuh tempo",
+              value: (r) => tanggalPendek(r["due_date"] ? String(r["due_date"]) : null),
+            },
+            { header: "Status", value: (r) => labelStatus(String(r["status"])) },
+          ],
+          rows: rowsFee,
+          summary: [
+            {
+              label: "Total fee",
+              value: rupiah(rowsFee.reduce((s, r) => s + Number(r["fee_amount"] ?? 0), 0)),
+            },
+            {
+              label: "Sisa fee belum dibayar",
+              value: rupiah(rowsFee.reduce((s, r) => s + Number(r["remaining_amount"] ?? 0), 0)),
+            },
+          ],
+        };
   const daftarKosong = tab === "makelar" ? rowsMakelar.length === 0 : rowsFee.length === 0;
   const memuat = tab === "makelar" ? brokers.isLoading : fees.isLoading;
   const gagal = tab === "makelar" ? brokers.isError : fees.isError;
@@ -238,20 +304,23 @@ function BrokersPage() {
         title="Makelar & Fee"
         description={`Mitra makelar dan komisi — ${scope}`}
         actions={
-          tab === "makelar" ? (
-            <Button
-              onClick={() => {
-                setFormMakelar(null);
-                setOpenMakelar(true);
-              }}
-            >
-              <Plus className="size-4" aria-hidden /> Tambah Makelar
-            </Button>
-          ) : (
-            <Button onClick={() => setOpenFee(true)}>
-              <Plus className="size-4" aria-hidden /> Catat Fee
-            </Button>
-          )
+          <>
+            <ExportMenu doc={dokumenEkspor} />
+            {tab === "makelar" ? (
+              <Button
+                onClick={() => {
+                  setFormMakelar(null);
+                  setOpenMakelar(true);
+                }}
+              >
+                <Plus className="size-4" aria-hidden /> Tambah Makelar
+              </Button>
+            ) : (
+              <Button onClick={() => setOpenFee(true)}>
+                <Plus className="size-4" aria-hidden /> Catat Fee
+              </Button>
+            )}
+          </>
         }
       />
 
