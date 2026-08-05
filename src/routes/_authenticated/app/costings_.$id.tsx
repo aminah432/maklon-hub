@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { AlertTriangle, ArrowLeft, CheckCircle2, Download, GitBranch, Save } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, GitBranch, Save } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
+import { ExportMenuSections } from "@/components/common/export-menu";
+import { slugFile, type SectionDoc } from "@/lib/export";
 import { ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { StatusBadge } from "@/components/common/status-badge";
 import { Button } from "@/components/ui/button";
@@ -43,7 +45,6 @@ import {
 import {
   ringkasanDraft,
   simulasiDariDraft,
-  unduhCsv,
   useAktifkanVersi,
   useBuatVersiBaru,
   useSimpanHpp,
@@ -51,7 +52,7 @@ import {
 } from "@/features/costings/use-hpp";
 import { useRows, type DbRow } from "@/lib/db";
 import { useCompany } from "@/lib/company-context";
-import { angka, rupiah, tanggalPendek } from "@/lib/format";
+import { angka, labelStatus, persen, rupiah, tanggalPendek } from "@/lib/format";
 import {
   OPSI_PEMBULATAN,
   SATUAN_ISI,
@@ -210,73 +211,98 @@ function HppDetailPage() {
   const namaProduk =
     (produk.data ?? []).find((p) => String(p["id"]) === header.product_id)?.["name"] ?? "-";
 
-  const eksporCsv = () => {
-    const baris: (string | number)[][] = [
-      ["Kalkulasi HPP", String(namaProduk), `Versi ${header.version_number}`],
-      [],
-      ["Bahan", "Kategori", "% Pakai", "Harga satuan", "Kebutuhan", "Waste %", "Biaya"],
-      ...bahan.map((b) => {
-        const dasar = hargaDasarBahan(b);
-        const kebutuhan =
-          (Number(b.usage_percentage ?? 0) / 100) * Number(header.formula_basis ?? 0);
-        return [
-          b.material_name_snapshot,
-          b.category,
-          Number(b.usage_percentage ?? 0),
-          dasar,
-          kebutuhan,
-          Number(b.waste_percentage ?? 0),
-          dasar * kebutuhan * (1 + Number(b.waste_percentage ?? 0) / 100),
-        ];
-      }),
-      [],
-      ["Packaging", "Jumlah", "Harga satuan", "Kapasitas", "Waste %"],
-      ...packaging.map((p) => [
-        p.packaging_name_snapshot,
-        Number(p.usage_quantity ?? 0),
-        Number(p.unit_price_snapshot ?? 0),
-        Number(p.capacity_quantity ?? 1),
-        Number(p.waste_percentage ?? 0),
-      ]),
-      [],
-      ["Total formula", hasil.totalFormula],
-      ["Total packaging", hasil.totalPackaging],
+  const dokumenHpp = (): SectionDoc => ({
+    title: `Lembar Kalkulasi HPP — ${String(namaProduk)}`,
+    subtitle: `${perusahaan?.name ?? "-"} · Versi ${header.version_number} ${header.version_name ? `(${header.version_name})` : ""}`,
+    fileName: slugFile(`hpp-${String(namaProduk)}-v${header.version_number}`),
+    meta: [
+      { label: "Status", value: labelStatus(header.status) },
+      { label: "Batch", value: `${angka(Number(header.planned_quantity ?? 0))} unit` },
+      { label: "Layak jual", value: `${angka(estimasi.layakJual)} unit` },
+      { label: "Dibuat", value: tanggalPendek(header.created_date) },
+    ],
+    sections: [
+      {
+        heading: "Formula bahan baku",
+        columns: [
+          { header: "Bahan" },
+          { header: "Kategori" },
+          { header: "% Pakai", align: "right" },
+          { header: "Harga satuan", align: "right" },
+          { header: "Kebutuhan", align: "right" },
+          { header: "Waste %", align: "right" },
+          { header: "Biaya", align: "right" },
+        ],
+        rows: bahan.map((b) => {
+          const dasar = hargaDasarBahan(b);
+          const kebutuhan =
+            (Number(b.usage_percentage ?? 0) / 100) * Number(header.formula_basis ?? 0);
+          return [
+            b.material_name_snapshot || "-",
+            b.category ?? "-",
+            persen(Number(b.usage_percentage ?? 0), 3),
+            rupiah(dasar, true),
+            angka(kebutuhan, 3),
+            persen(Number(b.waste_percentage ?? 0)),
+            rupiah(dasar * kebutuhan * (1 + Number(b.waste_percentage ?? 0) / 100), true),
+          ];
+        }),
+      },
+      {
+        heading: "Kemasan",
+        columns: [
+          { header: "Kemasan" },
+          { header: "Jumlah", align: "right" },
+          { header: "Harga satuan", align: "right" },
+          { header: "Kapasitas", align: "right" },
+          { header: "Waste %", align: "right" },
+        ],
+        rows: packaging.map((p) => [
+          p.packaging_name_snapshot || "-",
+          angka(Number(p.usage_quantity ?? 0), 2),
+          rupiah(Number(p.unit_price_snapshot ?? 0), true),
+          angka(Number(p.capacity_quantity ?? 1), 2),
+          persen(Number(p.waste_percentage ?? 0)),
+        ]),
+      },
+      {
+        heading: "Simulasi harga per MOQ",
+        columns: [
+          { header: "MOQ", align: "right" },
+          { header: "Metode" },
+          { header: "HNC sebelum PPN", align: "right" },
+          { header: "PPN 11%", align: "right" },
+          { header: "PPN 12%", align: "right" },
+          { header: "Harga final", align: "right" },
+          { header: "Laba/unit", align: "right" },
+          { header: "Margin", align: "right" },
+        ],
+        rows: simulasi.map(({ draft: m, hasil: r }) => [
+          angka(Number(m.moq_quantity ?? 0)),
+          labelStatus(String(m.pricing_method)),
+          rupiah(r.priceBeforeTax, true),
+          rupiah(r.priceAfterTax11, true),
+          rupiah(r.priceAfterTax12, true),
+          rupiah(r.roundedPrice),
+          rupiah(r.profitPerUnit, true),
+          persen(r.actualMargin),
+        ]),
+      },
+    ],
+    summary: [
+      { label: "Total formula", value: rupiah(hasil.totalFormula, true) },
+      { label: "Total kemasan", value: rupiah(hasil.totalPackaging, true) },
       ...(hasil.combinedBtklOhp > 0
-        ? ([["BTKL + OHP", hasil.combinedBtklOhp]] as (string | number)[][])
-        : ([
-            ["BTKL", hasil.btkl],
-            ["OHP", hasil.ohp],
-          ] as (string | number)[][])),
-      ["Biaya tambahan", hasil.biayaTambahan],
-      ["HPP per unit", hasil.hppPerUnit],
-      ["HPP per batch", hasil.hppBatch],
-      [],
-      [
-        "MOQ",
-        "Metode",
-        "HNC (sebelum PPN)",
-        "HNC + PPN 11%",
-        "HNC + PPN 12%",
-        "Harga termasuk PPN",
-        "Laba/unit",
-        "Margin %",
-      ],
-      ...simulasi.map(({ draft: m, hasil: r }) => [
-        Number(m.moq_quantity ?? 0),
-        m.pricing_method,
-        r.priceBeforeTax,
-        r.priceAfterTax11,
-        r.priceAfterTax12,
-        r.roundedPrice,
-        r.profitPerUnit,
-        r.actualMargin,
-      ]),
-    ];
-    unduhCsv(
-      `hpp-${String(namaProduk).toLowerCase().replace(/\s+/g, "-")}-v${header.version_number}`,
-      baris,
-    );
-  };
+        ? [{ label: "BTKL + OHP", value: rupiah(hasil.combinedBtklOhp, true) }]
+        : [
+            { label: "BTKL", value: rupiah(hasil.btkl, true) },
+            { label: "OHP", value: rupiah(hasil.ohp, true) },
+          ]),
+      { label: "Biaya tambahan", value: rupiah(hasil.biayaTambahan, true) },
+      { label: "HPP per unit", value: rupiah(hasil.hppPerUnit, true) },
+      { label: "HPP per batch", value: rupiah(hasil.hppBatch) },
+    ],
+  });
 
   const hargaAcuan = simulasi.reduce<(typeof simulasi)[number] | null>(
     (terendah, baris) =>
@@ -302,9 +328,7 @@ function HppDetailPage() {
                 <ArrowLeft className="size-4" aria-hidden /> Daftar
               </Link>
             </Button>
-            <Button variant="outline" onClick={eksporCsv}>
-              <Download className="size-4" aria-hidden /> CSV
-            </Button>
+            <ExportMenuSections doc={dokumenHpp} label="Ekspor" />
             <Button
               variant="outline"
               disabled={versiBaru.isPending || isLegacy}

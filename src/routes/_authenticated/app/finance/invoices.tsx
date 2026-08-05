@@ -6,6 +6,8 @@ import { MoreHorizontal, Plus, Receipt } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { RecordFormDialog, type FormValues } from "@/components/common/record-form";
@@ -183,15 +185,58 @@ function InvoicesPage() {
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
+  const dokumenEkspor = (): ExportDoc<DbRow> => ({
+    title: "Daftar Invoice",
+    subtitle: scope,
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+    ],
+    columns: [
+      { header: "Nomor", value: (r) => String(r["invoice_number"] ?? "-") },
+      { header: "Klien", value: (r) => namaKlien(r["client_id"]) },
+      { header: "Perusahaan", value: (r) => companyById(String(r["company_id"]))?.code ?? "-" },
+      { header: "Tipe", value: (r) => labelStatus(String(r["invoice_type"])) },
+      { header: "Tanggal", value: (r) => tanggalPendek(String(r["invoice_date"])) },
+      {
+        header: "Jatuh tempo",
+        value: (r) => tanggalPendek(r["due_date"] ? String(r["due_date"]) : null),
+      },
+      { header: "Total", value: (r) => rupiah(Number(r["grand_total"])), align: "right" },
+      { header: "Dibayar", value: (r) => rupiah(Number(r["paid_amount"])), align: "right" },
+      { header: "Sisa", value: (r) => rupiah(Number(r["remaining_amount"])), align: "right" },
+      { header: "Status", value: (r) => labelStatus(String(r["status"])) },
+    ],
+    rows,
+    summary: [
+      {
+        label: "Total tagihan",
+        value: rupiah(rows.reduce((s, r) => s + Number(r["grand_total"] ?? 0), 0)),
+      },
+      {
+        label: "Total dibayar",
+        value: rupiah(rows.reduce((s, r) => s + Number(r["paid_amount"] ?? 0), 0)),
+      },
+      {
+        label: "Sisa tagihan",
+        value: rupiah(rows.reduce((s, r) => s + Number(r["remaining_amount"] ?? 0), 0)),
+      },
+    ],
+  });
+
   return (
     <>
       <PageHeader
         title="Invoice"
         description={`Penagihan pesanan maklon — ${scope}`}
         actions={
-          <Button onClick={() => setOpen(true)}>
-            <Plus className="size-4" aria-hidden /> Buat Invoice
-          </Button>
+          <>
+            <ExportMenu doc={dokumenEkspor} />
+            <Button onClick={() => setOpen(true)}>
+              <Plus className="size-4" aria-hidden /> Buat Invoice
+            </Button>
+          </>
         }
       />
 

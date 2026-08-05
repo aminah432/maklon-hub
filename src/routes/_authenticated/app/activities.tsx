@@ -5,6 +5,8 @@ import { z } from "zod";
 import { Activity } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge } from "@/components/common/status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -91,9 +93,32 @@ function ActivitiesPage() {
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
+  type Aktivitas = (typeof rows)[number];
+  const dokumenEkspor = (): ExportDoc<Aktivitas> => ({
+    title: "Jejak Aktivitas Sistem",
+    subtitle: scope,
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Entitas", value: entitas === "semua" ? "Semua" : labelStatus(entitas) },
+    ],
+    columns: [
+      { header: "Waktu", value: (g) => tanggal(g.waktu, true) },
+      { header: "Aktivitas", value: (g) => g.judul },
+      { header: "Entitas", value: (g) => labelStatus(g.entitas) },
+      { header: "Perusahaan", value: (g) => companyById(String(g.company_id))?.code ?? "-" },
+      { header: "Catatan", value: (g) => g.detail || "-" },
+    ],
+    rows,
+  });
+
   return (
     <>
-      <PageHeader title="Aktivitas" description={`Jejak audit sistem — ${scope}`} />
+      <PageHeader
+        title="Aktivitas"
+        description={`Jejak audit sistem — ${scope}`}
+        actions={<ExportMenu doc={dokumenEkspor} />}
+      />
 
       <FilterBar
         search={q}

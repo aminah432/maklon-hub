@@ -6,6 +6,8 @@ import { Factory, MoreHorizontal, Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { RecordFormDialog, type FormValues } from "@/components/common/record-form";
@@ -272,15 +274,58 @@ function ProductionPage() {
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
+  const dokumenEkspor = (): ExportDoc<DbRow> => ({
+    title: "Daftar Batch Produksi",
+    subtitle: scope,
+    orientation: "landscape",
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+    ],
+    columns: [
+      { header: "Batch", value: (r) => String(r["batch_number"] ?? "-") },
+      { header: "Produk", value: (r) => namaProduk(r["product_id"]) },
+      { header: "Pesanan", value: (r) => nomorPesanan(r["order_id"]) },
+      { header: "Perusahaan", value: (r) => companyById(String(r["company_id"]))?.code ?? "-" },
+      { header: "Rencana (unit)", value: (r) => angka(Number(r["planned_quantity"])), align: "right" },
+      { header: "Lolos QC (unit)", value: (r) => angka(Number(r["passed_quantity"])), align: "right" },
+      {
+        header: "Mulai",
+        value: (r) => tanggalPendek(r["scheduled_start"] ? String(r["scheduled_start"]) : null),
+      },
+      {
+        header: "Selesai",
+        value: (r) => tanggalPendek(r["scheduled_end"] ? String(r["scheduled_end"]) : null),
+      },
+      { header: "Progres", value: (r) => `${Number(r["progress_percentage"])}%`, align: "right" },
+      { header: "Status", value: (r) => labelStatus(String(r["status"])) },
+    ],
+    rows,
+    summary: [
+      {
+        label: "Total unit direncanakan",
+        value: angka(rows.reduce((s, r) => s + Number(r["planned_quantity"] ?? 0), 0)),
+      },
+      {
+        label: "Total unit lolos QC",
+        value: angka(rows.reduce((s, r) => s + Number(r["passed_quantity"] ?? 0), 0)),
+      },
+    ],
+  });
+
   return (
     <>
       <PageHeader
         title="Produksi"
         description={`Batch produksi, tahapan, dan QC — ${scope}`}
         actions={
-          <Button onClick={() => setForm(true)}>
-            <Plus className="size-4" aria-hidden /> Buat Batch
-          </Button>
+          <>
+            <ExportMenu doc={dokumenEkspor} />
+            <Button onClick={() => setForm(true)}>
+              <Plus className="size-4" aria-hidden /> Buat Batch
+            </Button>
+          </>
         }
       />
 

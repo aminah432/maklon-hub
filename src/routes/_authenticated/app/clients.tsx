@@ -11,6 +11,9 @@ import { ClientFormDialog } from "@/features/clients/client-form";
 import { useArchiveClient, useClients, type Client } from "@/features/clients/use-clients";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import { labelStatus } from "@/lib/format";
+import type { ExportDoc } from "@/lib/export";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,6 +114,29 @@ function ClientsPage() {
   }, [data, q, status, kota, sumber]);
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
+
+  const dokumenEkspor = (): ExportDoc<Client> => ({
+    title: arsip ? "Arsip Klien Maklon" : "Daftar Klien Maklon",
+    subtitle: scope,
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+      { label: "Kota", value: kota === "semua" ? "Semua" : kota },
+    ],
+    columns: [
+      { header: "Kode", value: (c) => c.client_code ?? "-" },
+      { header: "Pemilik", value: (c) => c.owner_name ?? "-" },
+      { header: "Nama Usaha", value: (c) => c.business_name ?? "-" },
+      { header: "Kota", value: (c) => c.city ?? "-" },
+      { header: "Telepon", value: (c) => c.phone ?? "-" },
+      { header: "Email", value: (c) => c.email ?? "-" },
+      { header: "Sumber", value: (c) => labelStatus(c.source) },
+      { header: "Perusahaan", value: (c) => companyById(c.company_id)?.code ?? "-" },
+      { header: "Status", value: (c) => labelStatus(c.status) },
+    ],
+    rows,
+  });
   const adaFilter = q.trim() !== "" || status !== "semua" || kota !== "semua" || sumber !== "semua";
   const resetFilter = () => setSearch({ q: "", status: "semua", kota: "semua", sumber: "semua" });
 
@@ -121,6 +147,7 @@ function ClientsPage() {
         description={`Data klien — ${scope}`}
         actions={
           <>
+            <ExportMenu doc={dokumenEkspor} />
             <Button variant="outline" onClick={() => setSearch({ arsip: !arsip })}>
               {arsip ? "Lihat klien aktif" : "Lihat arsip"}
             </Button>

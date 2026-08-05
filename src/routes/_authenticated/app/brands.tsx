@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, StatusBadge } from "@/components/common/status-badge";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { BrandFormDialog } from "@/features/brands/brand-form";
 import {
   BRAND_STATUSES,
@@ -100,6 +102,25 @@ function BrandsPage() {
   }, [data, q, status, klien]);
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
+
+  const dokumenEkspor = (): ExportDoc<Brand> => ({
+    title: arsip ? "Arsip Brand Klien" : "Daftar Brand Klien",
+    subtitle: scope,
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+    ],
+    columns: [
+      { header: "Kode", value: (b) => b.brand_code ?? "-" },
+      { header: "Brand", value: (b) => b.name ?? "-" },
+      { header: "Kategori", value: (b) => b.main_category ?? "-" },
+      { header: "Target Pasar", value: (b) => b.target_market ?? "-" },
+      { header: "Perusahaan", value: (b) => companyById(b.company_id)?.code ?? "-" },
+      { header: "Status", value: (b) => labelStatus(b.status) },
+    ],
+    rows,
+  });
   const adaFilter = q.trim() !== "" || status !== "semua" || klien !== "semua";
 
   return (
@@ -109,6 +130,7 @@ function BrandsPage() {
         description={`Daftar brand — ${scope}`}
         actions={
           <>
+            <ExportMenu doc={dokumenEkspor} />
             <Button variant="outline" onClick={() => setSearch({ arsip: !arsip })}>
               {arsip ? "Lihat brand aktif" : "Lihat arsip"}
             </Button>

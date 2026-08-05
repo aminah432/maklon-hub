@@ -6,6 +6,8 @@ import { MoreHorizontal, Package, Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { FilterBar } from "@/components/common/filter-bar";
+import { ExportMenu } from "@/components/common/export-menu";
+import type { ExportDoc } from "@/lib/export";
 import { EmptyState, ErrorState, LoadingSkeleton } from "@/components/common/states";
 import { CompanyBadge, PriorityBadge, StatusBadge } from "@/components/common/status-badge";
 import { SalesDocDialog } from "@/features/sales/sales-doc-dialog";
@@ -172,15 +174,57 @@ function OrdersPage() {
 
   const scope = activeId === "all" ? "Semua Perusahaan" : (active?.name ?? "-");
 
+  const dokumenEkspor = (): ExportDoc<DbRow> => ({
+    title: "Daftar Pesanan Maklon",
+    subtitle: scope,
+    orientation: "landscape",
+    meta: [
+      { label: "Total baris", value: String(rows.length) },
+      { label: "Pencarian", value: q.trim() || "-" },
+      { label: "Status", value: status === "semua" ? "Semua" : labelStatus(status) },
+      { label: "Pembayaran", value: bayar === "semua" ? "Semua" : labelStatus(bayar) },
+    ],
+    columns: [
+      { header: "Nomor", value: (r) => String(r["order_number"] ?? "-") },
+      { header: "Klien", value: (r) => namaKlien(r["client_id"]) },
+      { header: "Perusahaan", value: (r) => companyById(String(r["company_id"]))?.code ?? "-" },
+      { header: "Tanggal", value: (r) => tanggalPendek(String(r["order_date"])) },
+      {
+        header: "Target",
+        value: (r) =>
+          tanggalPendek(r["target_completion_date"] ? String(r["target_completion_date"]) : null),
+      },
+      { header: "Total", value: (r) => rupiah(Number(r["grand_total"])), align: "right" },
+      { header: "Sisa", value: (r) => rupiah(Number(r["remaining_amount"])), align: "right" },
+      { header: "Prioritas", value: (r) => labelStatus(String(r["priority"])) },
+      { header: "Status", value: (r) => labelStatus(String(r["status"])) },
+      { header: "Pembayaran", value: (r) => labelStatus(String(r["payment_status"])) },
+    ],
+    rows,
+    summary: [
+      {
+        label: "Total nilai pesanan",
+        value: rupiah(rows.reduce((s, r) => s + Number(r["grand_total"] ?? 0), 0)),
+      },
+      {
+        label: "Total sisa tagihan",
+        value: rupiah(rows.reduce((s, r) => s + Number(r["remaining_amount"] ?? 0), 0)),
+      },
+    ],
+  });
+
   return (
     <>
       <PageHeader
         title="Pesanan"
         description={`Pesanan produksi maklon — ${scope}`}
         actions={
-          <Button onClick={() => setOpen(true)}>
-            <Plus className="size-4" aria-hidden /> Buat Pesanan
-          </Button>
+          <>
+            <ExportMenu doc={dokumenEkspor} />
+            <Button onClick={() => setOpen(true)}>
+              <Plus className="size-4" aria-hidden /> Buat Pesanan
+            </Button>
+          </>
         }
       />
 
