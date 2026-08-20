@@ -1,0 +1,1 @@
+update public.user_roles set role='super_admin'::app_role where user_id='9e2778f5-3fba-4860-9756-bce483993dab'::uuid;
