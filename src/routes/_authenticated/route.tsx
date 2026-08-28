@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated")({
       }
       return { user: data.user };
     } catch (err) {
-      if (err && typeof err === "object" && "to" in err) throw err;
+      if (isRedirect(err)) throw err;
       throw redirect({ to: "/auth" });
     }
   },
