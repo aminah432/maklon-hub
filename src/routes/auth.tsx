@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Mascot, MascotLogo } from "@/components/common/mascot";
+import { isAllowedEmail, normalizeEmail, NOT_ALLOWED_MESSAGE } from "@/lib/allowed-accounts";
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
