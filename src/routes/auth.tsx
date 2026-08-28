@@ -50,15 +50,33 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (!isAllowedEmail(email)) {
+        toast.error(NOT_ALLOWED_MESSAGE);
+        return;
+      }
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizeEmail(email),
+        password,
+      });
       if (error) throw error;
+      if (!isAllowedEmail(data.user?.email)) {
+        await supabase.auth.signOut();
+        toast.error(NOT_ALLOWED_MESSAGE);
+        return;
+      }
       navigate({ to: "/app/dashboard", replace: true });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan");
+      const message = err instanceof Error ? err.message : "Terjadi kesalahan";
+      toast.error(
+        /fetch|network/i.test(message)
+          ? "Koneksi ke server terputus. Periksa internet lalu coba lagi."
+          : message,
+      );
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
